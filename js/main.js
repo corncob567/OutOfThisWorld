@@ -21,80 +21,89 @@ d3.csv('data/exoplanets.csv')
 
 	//data.filter(d => d.within_habitable_zone === true) // Returns the exoplanets that are habitable
 	console.log(data);
-
-  	//drawChart(data); 
+	let starCounts = countStars(data);
+  	drawBarChart(starCounts);
+	// https://d3-graph-gallery.com/graph/histogram_basic.html - Use this for histogram eventually
 
 })
 .catch(error => {
     console.error('Error loading the data: ' + error);
 });
 
-
-function drawChart(data){
-
-	console.log("Let's draw a chart!!");
-	
-
+// https://d3-graph-gallery.com/graph/barplot_basic.html
+function drawBarChart(starCounts){
 	// Margin object with properties for the four directions
-	const margin = {top: 40, right: 50, bottom: 10, left: 50};
+	const margin = {top: 40, right: 50, bottom: 20, left: 50};
 
 	// Width and height as the inner dimensions of the chart area
-	const width = 1000 - margin.left - margin.right;
-	const height = 1100 - margin.top - margin.bottom;
+	const width = 375 - margin.left - margin.right;
+	const height = 412 - margin.top - margin.bottom;
+	const titleheight = 30
+	const YAxisLabelWidth = 20
+	const XAxisLabelHeight = 20
 
-	// Define 'svg' as a child-element (g) from the drawing area and include spaces
-	// Add <svg> element (drawing space)
-	const svg = d3.select('body').append('svg')
+	const svg = d3.select('#barchart1').append('svg')
 	    .attr('width', width + margin.left + margin.right)
 	    .attr('height', height + margin.top + margin.bottom)
 	    .append('g')
 	    .attr('transform', `translate(${margin.left}, ${margin.top})`);
 
-	// Initialize linear and ordinal scales (input domain and output range)
-	//TO DO
-	// CREATE an xScale using d3.scaleLinear , with domain 0-365 and range 0-width
-	const xScale = d3.scaleLinear().domain([0, 365]).range([0, width]);
-	// CREATE a yScale using d3.scaleLinear, with domain [ max year, min year] and range [0, height]  Note- why did I reverse the domain going from max to min? 
-	const yScale = d3.scaleLinear().domain([d3.max(data, d => d.year), d3.min(data, d => d.year)]).range([0, height]);
-	// CREATE an rScale using d3.scaleLinear, with domain the extent of the cost field in data, and range 5, 100
-	const rScale = d3.scaleLinear().domain([d3.min(data, d=> d.cost), d3.max(data, d=> d.cost)]).range([5, 100]);
-	//    note- remember there are calls d3.min, d3.max and d3.extent.  Check the tutorial for today
+	// X axis
+	let x = d3.scaleBand()
+	.range([ YAxisLabelWidth, width ])
+	.domain(starCounts.map(c => c.starNum))
+	.padding(0.2);
+	svg.append("g")
+	.attr("transform", "translate(0," + (height - XAxisLabelHeight) + ")")
+	.call(d3.axisBottom(x))
+	.selectAll("text")
+	.attr("transform", "translate(-10,0)rotate(-45)")
+	.style("text-anchor", "end");
 
-	// Construct a new ordinal scale with a range of ten categorical colours
-	const colorPalette = d3.scaleOrdinal(d3.schemeTableau10) //TRY OTHER COLOR SCHEMES.... https://github.com/d3/d3-scale-chromatic
-	colorPalette.domain( "tropical-cyclone", "drought-wildfire", "severe-storm", "flooding" );
+	let maxStars = Math.max(...starCounts.map(c => c.frequency))
 
-	// Initialize axes
-	//TO DO 
-	//  CREATE a top axis using your xScale)
-	const xAxis = d3.axisTop(xScale);
-	// Create a horizontal axis with labels placed below the axis
-	//  CREATE a left axis using your yScale)
-	const yAxis = d3.axisLeft(yScale);
-	//CREATE an xAxisGroup and append it to the SVG
-	const xAxisGroup = svg.append('g')
-	.attr('class', 'axis x-axis')
-	.attr('transform', `translate(0, ${height})`)
-	.call(xAxis);
-	//CREATE a yAxisGroup and append it to the SVG
-	const yAxisGroup = svg.append('g')
-	.attr('class', 'axis x-axis')
-	.call(yAxis);
+	// Add Y axis
+	let y = d3.scaleLinear()
+	.domain([0, maxStars])
+	.range([ height - XAxisLabelHeight, titleheight]);
+	svg.append("g")
+	.call(d3.axisLeft(y))
+	.attr("transform", "translate(" + YAxisLabelWidth + ", 0)");
 
-	//Add circles for each event in the data
-	svg.selectAll('circle')
-	.data(data)
+	// Bars
+	svg.selectAll("rect")
+    .data(starCounts)
 	.enter()
-	.append('circle')
-	.attr('fill', (d) => colorPalette(d.category) ) //TO DO: use the color palette.  //(d) => colorPalette(d.category) )
-	.attr('opacity', .8)
-	.attr('stroke', "gray")
-	.attr('stroke-width', 2)
-	.attr('r', d => rScale(d.cost)) //TO DO: use the rScale 
-	.attr('cy', d => yScale(d.year)) // TO DO:  use the yScale 
-	.attr('cx', d => xScale(d.daysFromYrStart)) //TO DO: use the xScale
+    .append("rect")
+    .attr("x", function(d) { return x(d.starNum);})
+    .attr("width", x.bandwidth())
+    .attr("y", function(d) { return y(d.frequency);})
+    .attr("height", function(d) {
+		return height- XAxisLabelHeight - y(d.frequency);
+    })
+	.attr("fill", "#69b3a2");
 
+	// Title
+	svg.append("text")
+   .attr("x", width / 2)
+   .attr("y", 10)
+   .attr("text-anchor", "middle")
+   .style("font-size", "24px")
+   .text("Bar Chart 1");
 
+   // Y-Axis Label
+   svg.append("text")
+   .attr("transform", "rotate(-90)")
+   .attr("x", -(height / 2))
+   .attr("y", -30)
+   .style("text-anchor", "middle")
+   .text("# of Exoplanets");
+
+   // X-Axis Label
+   svg.append("text")
+   .attr("transform", "translate(" + (width / 2) + " ," + (height + 15) + ")")
+   .style("text-anchor", "middle")
+   .text("Number of Stars");
 }
 
 
@@ -119,4 +128,23 @@ function isInHabitableZone(specType, plOrbsMax){
 		default:
 		  return false
 	  }
-  }
+}
+
+function countStars(data) {
+	let counts = {};
+	let countsArr = [];
+
+	data.forEach(d => {
+		counts[d.sy_snum] = (counts[d.sy_snum] || 0) + 1;
+	});
+
+	for(const [key, value] of Object.entries(counts)) {
+		const obj = {
+			starNum: key,
+			frequency: value
+		  };
+		  countsArr.push(obj)
+	}
+
+	return countsArr;
+};
