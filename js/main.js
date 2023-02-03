@@ -14,15 +14,20 @@ d3.csv('data/exoplanets.csv')
 		d.st_mass = +d.st_mass;
 		d.sy_dist = +d.sy_dist;
 
-		d.st_spectype = d.st_spectype.charAt(0) // only get type letter (A, F, G, K, N)
+		d.st_spectype = d.st_spectype.charAt(0).toUpperCase() // only get type letter (A, F, G, K, N)
 
       	d.within_habitable_zone = isInHabitableZone(d.st_spectype, d.pl_orbsmax);
   	});
 
 	//data.filter(d => d.within_habitable_zone === true) // Returns the exoplanets that are habitable
 	console.log(data);
-	let starCounts = countStars(data);
-  	drawBarChart(starCounts);
+
+	let counts = getCounts(data);
+	console.log(counts);
+  	drawBarChart(counts[0], "barchart1", "Bar Chart 1", "Number of Stars", "# of Exoplanets");
+	drawBarChart(counts[1], "barchart2", "Bar Chart 2", "Number of Planets", "# of Exoplanets");
+	drawBarChart(counts[2], "barchart3", "Bar Chart 3", "Type", "# of Exoplanets");
+	drawBarChart(counts[3], "barchart4", "Bar Chart 4", "Discovery Method", "# of Exoplanets", 110);
 	// https://d3-graph-gallery.com/graph/histogram_basic.html - Use this for histogram eventually
 
 })
@@ -31,27 +36,26 @@ d3.csv('data/exoplanets.csv')
 });
 
 // https://d3-graph-gallery.com/graph/barplot_basic.html
-function drawBarChart(starCounts){
+function drawBarChart(counts, svgId, title, xLabel, yLabel, XAxisLabelHeight = 20){
 	// Margin object with properties for the four directions
-	const margin = {top: 40, right: 50, bottom: 20, left: 50};
+	const margin = {top: 30, right: 30, bottom: 20, left: 50};
 
 	// Width and height as the inner dimensions of the chart area
 	const width = 375 - margin.left - margin.right;
 	const height = 412 - margin.top - margin.bottom;
 	const titleheight = 30
 	const YAxisLabelWidth = 20
-	const XAxisLabelHeight = 20
 
-	const svg = d3.select('#barchart1').append('svg')
+	const svg = d3.select('#' + svgId).append('svg')
 	    .attr('width', width + margin.left + margin.right)
 	    .attr('height', height + margin.top + margin.bottom)
 	    .append('g')
-	    .attr('transform', `translate(${margin.left}, ${margin.top})`);
+	    .attr('transform', `translate(${margin.left}, ${margin.top})`)
 
 	// X axis
 	let x = d3.scaleBand()
 	.range([ YAxisLabelWidth, width ])
-	.domain(starCounts.map(c => c.starNum))
+	.domain(counts.map(c => c.k))
 	.padding(0.2);
 	svg.append("g")
 	.attr("transform", "translate(0," + (height - XAxisLabelHeight) + ")")
@@ -60,7 +64,7 @@ function drawBarChart(starCounts){
 	.attr("transform", "translate(-10,0)rotate(-45)")
 	.style("text-anchor", "end");
 
-	let maxStars = Math.max(...starCounts.map(c => c.frequency))
+	let maxStars = Math.max(...counts.map(c => c.frequency))
 
 	// Add Y axis
 	let y = d3.scaleLinear()
@@ -72,10 +76,10 @@ function drawBarChart(starCounts){
 
 	// Bars
 	svg.selectAll("rect")
-    .data(starCounts)
+    .data(counts)
 	.enter()
     .append("rect")
-    .attr("x", function(d) { return x(d.starNum);})
+    .attr("x", function(d) { return x(d.k);})
     .attr("width", x.bandwidth())
     .attr("y", function(d) { return y(d.frequency);})
     .attr("height", function(d) {
@@ -89,7 +93,7 @@ function drawBarChart(starCounts){
    .attr("y", 10)
    .attr("text-anchor", "middle")
    .style("font-size", "24px")
-   .text("Bar Chart 1");
+   .text(title);
 
    // Y-Axis Label
    svg.append("text")
@@ -97,13 +101,13 @@ function drawBarChart(starCounts){
    .attr("x", -(height / 2))
    .attr("y", -30)
    .style("text-anchor", "middle")
-   .text("# of Exoplanets");
+   .text(yLabel);
 
    // X-Axis Label
    svg.append("text")
    .attr("transform", "translate(" + (width / 2) + " ," + (height + 15) + ")")
    .style("text-anchor", "middle")
-   .text("Number of Stars");
+   .text(xLabel);
 }
 
 
@@ -130,21 +134,50 @@ function isInHabitableZone(specType, plOrbsMax){
 	  }
 }
 
-function countStars(data) {
-	let counts = {};
-	let countsArr = [];
-
-	data.forEach(d => {
-		counts[d.sy_snum] = (counts[d.sy_snum] || 0) + 1;
-	});
-
-	for(const [key, value] of Object.entries(counts)) {
+// Used to sort by a property value. Currently sorts in descending order by frequency.
+function compare(a, b) {
+	if (a.frequency < b.frequency){
+		return 1;
+	}
+	if (a.frequency > b.frequency){
+		return -1;
+	}
+	return 0;
+}
+  
+function convertDictToArray(dict){
+	let arr = [];
+	for(const [key, value] of Object.entries(dict)) {
 		const obj = {
-			starNum: key,
+			k: key,
 			frequency: value
 		  };
-		  countsArr.push(obj)
+		  arr.push(obj);
 	}
+	arr.sort(compare);
+	return arr;
+}
 
-	return countsArr;
+function getCounts(data) {
+	let starCounts = {};
+	let planetCounts = {};
+	let typeCounts = {};
+	let discMethod = {};
+
+	data.forEach(d => {
+		starCounts[d.sy_snum] = (starCounts[d.sy_snum] || 0) + 1;
+		planetCounts[d.sy_pnum] = (planetCounts[d.sy_pnum] || 0) + 1;
+		if (d.st_spectype == "A" || d.st_spectype == "F"|| d.st_spectype == "G" || d.st_spectype == "K" || d.st_spectype == "M") {
+			typeCounts[d.st_spectype] = (typeCounts[d.st_spectype] || 0) + 1;			
+		}
+		discMethod[d.discoverymethod] = (discMethod[d.discoverymethod] || 0) + 1;
+	});
+
+	let counts = [starCounts, planetCounts, typeCounts, discMethod];
+	let countArrays = [];
+	counts.forEach(c => {
+		countArrays.push(convertDictToArray(c));
+	});
+
+	return countArrays;
 };
