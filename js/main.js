@@ -20,7 +20,7 @@ d3.csv('data/exoplanets.csv')
   	});
 
 	//data.filter(d => d.within_habitable_zone === true) // Returns the exoplanets that are habitable
-	console.log(data);
+	//console.log(data);
 
 	let counts = getCounts(data);
 	console.log(counts);
@@ -28,6 +28,7 @@ d3.csv('data/exoplanets.csv')
 	drawBarChart(counts[1], "barchart2", "Bar Chart 2", "Number of Planets", "# of Exoplanets");
 	drawBarChart(counts[2], "barchart3", "Bar Chart 3", "Type", "# of Exoplanets");
 	drawBarChart(counts[3], "barchart4", "Bar Chart 4", "Discovery Method", "# of Exoplanets", 110);
+	drawGroupedBarChart(counts[4], "barchart5", "Bar Chart 5", "Type", "# of Exoplanets");
 	// https://d3-graph-gallery.com/graph/histogram_basic.html - Use this for histogram eventually
 
 })
@@ -64,11 +65,11 @@ function drawBarChart(counts, svgId, title, xLabel, yLabel, XAxisLabelHeight = 2
 	.attr("transform", "translate(-10,0)rotate(-45)")
 	.style("text-anchor", "end");
 
-	let maxStars = Math.max(...counts.map(c => c.frequency))
+	let maxFreq = Math.max(...counts.map(c => c.frequency))
 
 	// Add Y axis
 	let y = d3.scaleLinear()
-	.domain([0, maxStars])
+	.domain([0, maxFreq])
 	.range([ height - XAxisLabelHeight, titleheight]);
 	svg.append("g")
 	.call(d3.axisLeft(y))
@@ -86,6 +87,101 @@ function drawBarChart(counts, svgId, title, xLabel, yLabel, XAxisLabelHeight = 2
 		return height- XAxisLabelHeight - y(d.frequency);
     })
 	.attr("fill", "#69b3a2");
+
+	// Title
+	svg.append("text")
+   .attr("x", width / 2)
+   .attr("y", 10)
+   .attr("text-anchor", "middle")
+   .style("font-size", "24px")
+   .text(title);
+
+   // Y-Axis Label
+   svg.append("text")
+   .attr("transform", "rotate(-90)")
+   .attr("x", -(height / 2))
+   .attr("y", -30)
+   .style("text-anchor", "middle")
+   .text(yLabel);
+
+   // X-Axis Label
+   svg.append("text")
+   .attr("transform", "translate(" + (width / 2) + " ," + (height + 15) + ")")
+   .style("text-anchor", "middle")
+   .text(xLabel);
+}
+
+function drawGroupedBarChart(data, svgId, title, xLabel, yLabel, XAxisLabelHeight = 20){
+	// Margin object with properties for the four directions
+	const margin = {top: 30, right: 30, bottom: 20, left: 50};
+
+	// Width and height as the inner dimensions of the chart area
+	const width = 375 - margin.left - margin.right;
+	const height = 412 - margin.top - margin.bottom;
+	const titleheight = 30
+	const YAxisLabelWidth = 20
+
+	const svg = d3.select('#' + svgId).append('svg')
+	    .attr('width', width + margin.left + margin.right)
+	    .attr('height', height + margin.top + margin.bottom)
+	    .append('g')
+	    .attr('transform', `translate(${margin.left}, ${margin.top})`);
+	
+	let subgroups = ["Habitable", "Inhabitable"]
+
+	// List of groups = value of the first column called group -> show them on the X axis
+	//let groups = d3.map(data, function(d){return(d.group)}).keys()
+	let groups = data.map(d => d.specType);
+  
+	// Add X axis
+	let x = d3.scaleBand()
+	  .domain(groups) //.domain(counts.map(c => c.k))
+	  .range([0, width])
+	  .padding(0.2)
+	  svg.append("g")
+	  .attr("transform", "translate(0," + (height - XAxisLabelHeight) + ")")
+	  .call(d3.axisBottom(x).tickSize(0))
+	  .selectAll("text")
+	  .attr("transform", "translate(-10,0)rotate(-45)")
+	  .style("text-anchor", "end");
+
+	let maxFreq = Math.max(...data.map(d => d.inhabitable))
+
+	// Add Y axis
+	let y = d3.scaleLinear()
+	  .domain([0, maxFreq])
+	  .range([ height - XAxisLabelHeight, titleheight]);
+	  svg.append("g")
+	  .call(d3.axisLeft(y))
+	  .attr("transform", "translate(" + YAxisLabelWidth + ", 0)");
+  
+	// Another scale for subgroup position
+	let xSubgroup = d3.scaleBand()
+	  .domain(subgroups)
+	  .range([0, x.bandwidth()])
+	  .padding([0.05])
+  
+	// color palette = one color per subgroup
+	let color = d3.scaleOrdinal()
+	  .domain(subgroups)
+	  .range(['#e41a1c','#377eb8'])
+  
+	// Show the bars
+	svg.append("g")
+	  .selectAll("g")
+	  // Enter in data = loop group per group
+	  .data(data)
+	  .enter()
+	  .append("g")
+		.attr("transform", function(d) { return "translate(" + x(d.specType) + ", 0)"; })
+	  .selectAll("rect")
+	  .data(function(d) { return subgroups.map(function(d) { return {specType: d.specType, value: d.habitable}; }); })
+	  .enter().append("rect")
+		.attr("x", function(d) { return xSubgroup(d.specType); })
+		.attr("y", function(d) { return y(d.value); })
+		.attr("width", xSubgroup.bandwidth())
+		.attr("height", function(d) { return height - y(d.value); })
+		.attr("fill", function(d) { return color(d.specType); });
 
 	// Title
 	svg.append("text")
@@ -163,21 +259,38 @@ function getCounts(data) {
 	let planetCounts = {};
 	let typeCounts = {};
 	let discMethod = {};
+	let typeHabitableCounts = {};
+	let typeInHabitableCounts = {};
+
+	let relevantSpecTypes = ['A', 'F', 'G', 'K', 'M']
 
 	data.forEach(d => {
 		starCounts[d.sy_snum] = (starCounts[d.sy_snum] || 0) + 1;
 		planetCounts[d.sy_pnum] = (planetCounts[d.sy_pnum] || 0) + 1;
-		if (d.st_spectype == "A" || d.st_spectype == "F"|| d.st_spectype == "G" || d.st_spectype == "K" || d.st_spectype == "M") {
-			typeCounts[d.st_spectype] = (typeCounts[d.st_spectype] || 0) + 1;			
+		if (d.st_spectype === "A" || d.st_spectype === "F"|| d.st_spectype === "G" || d.st_spectype === "K" || d.st_spectype === "M") {
+			typeCounts[d.st_spectype] = (typeCounts[d.st_spectype] || 0) + 1;
+			if (d.within_habitable_zone === true){
+				typeHabitableCounts[d.st_spectype] = (typeHabitableCounts[d.st_spectype] || 0) + 1;
+			}else{
+				typeInHabitableCounts[d.st_spectype] = (typeInHabitableCounts[d.st_spectype] || 0) + 1;
+			}
 		}
 		discMethod[d.discoverymethod] = (discMethod[d.discoverymethod] || 0) + 1;
 	});
 
+	
 	let counts = [starCounts, planetCounts, typeCounts, discMethod];
 	let countArrays = [];
 	counts.forEach(c => {
 		countArrays.push(convertDictToArray(c));
 	});
+	
+	let combinedHabitableCounts = []
+	relevantSpecTypes.forEach(type => {
+		let object = {specType: type, habitable: typeHabitableCounts[type], inhabitable: typeInHabitableCounts[type]}
+		combinedHabitableCounts.push(object);
+	});
+	countArrays.push(combinedHabitableCounts)
 
 	return countArrays;
 };
