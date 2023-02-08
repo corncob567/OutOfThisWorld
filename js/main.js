@@ -27,6 +27,9 @@ d3.csv('data/exoplanets.csv')
 
 	let counts = getCounts(data);
 	console.log(counts)
+	// let planetsByStarCount = d3.rollups(data, v => v.length, d => d.sy_snum) // This works for counts. Maybe refactor to use this later.
+	// console.log(planetsByStarCount)
+
   	drawBarChart(counts[0], "barchart1", "Bar Chart 1", "Number of Stars", "# of Exoplanets");
 	drawBarChart(counts[1], "barchart2", "Bar Chart 2", "Number of Planets", "# of Exoplanets");
 	drawBarChart(counts[2], "barchart3", "Bar Chart 3", "Star Type", "# of Exoplanets");
@@ -36,7 +39,7 @@ d3.csv('data/exoplanets.csv')
 	drawHistogram(data.filter(d => d.sy_dist !== "BLANK"), "histogram", "Histogram", "Distance from Earth (pc)", "# of Exoplanets", 30)
 	// https://d3-graph-gallery.com/graph/line_basic.html
 	drawLineChart(counts[4], "linechart", "Line Chart", "Year", "# of Exoplanets Discovered", 30)
-	// 
+	// https://d3-graph-gallery.com/graph/scatter_basic.html
 	drawScatterPlot(data.filter(d => !isNaN(d.st_mass) && !isNaN(d.st_rad)), "scatterplot", "Scatter Plot", "Stellar Radius", "Stellar Mass")
 })
 .catch(error => {
@@ -298,12 +301,11 @@ function drawHistogram(data, svgId, title, xLabel, yLabel, XAxisLabelHeight = 20
 			u.exit().remove()
 	}
 
-	// Initialize with 20 bins
+	// Initialize the histogram with 20 bins
 	update(20)
 
-	// Listen to the button -> update if user change it
 	d3.select("#nBin").on("input", function() {
-	update(+this.value);
+		update(+this.value);
 	});
 
 	// Title
@@ -404,7 +406,7 @@ function drawLineChart(counts, svgId, title, xLabel, yLabel, XAxisLabelHeight = 
 function drawScatterPlot(data, svgId, title, xLabel, yLabel, XAxisLabelHeight = 20){
 	const margin = {top: 30, right: 30, bottom: 20, left: 50};
 
-	const width = 1500 - margin.left - margin.right;
+	const width = 750 - margin.left - margin.right;
 	const height = 412 - margin.top - margin.bottom;
 	const titleheight = 30
 	const YAxisLabelWidth = 20

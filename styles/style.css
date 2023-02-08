@@ -43,11 +43,7 @@
 }
 
 .lineChartHolder {
-  flex-grow: 2;
-}
-
-.scatterPlotHolder {
-  flex-grow: 4;
+  flex-basis: auto;
 }
 
 #scatterplot {
