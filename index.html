@@ -18,7 +18,22 @@
         <div id="barchart2"></div>
         <div id="barchart3"></div>
         <div id="barchart4"></div>
-        <div id="barchart5"></div>
+        <div>
+            <div id="dualbarchart"></div>
+        </div>
+        <div>
+            <div id="histogram"></div>
+            <p class="binInput">
+                <label># of Bins</label>
+                <input type="number" min="1" max="100" step="1" value="30" id="nBin">
+            </p>
+        </div>
+        <div class="lineChartHolder">
+            <div id="linechart"></div>
+        </div>
+        <div class="scatterPlotHolder">
+            <div id="scatterplot"></div>
+        </div>
     </div>
     
     <script src="js/d3.v6.min.js"></script>
