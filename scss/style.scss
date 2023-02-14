@@ -1,12 +1,16 @@
 #pageInfo{
     flex-basis: 100%;
     margin-bottom: 10px;
-    h4, p, h2{
+    p, h2{
         text-align: center;
         margin: 5px 4px;
     }
     .name{
         font-weight: 900;
+    }
+    .title{
+        font-weight: 900;
+        font-size: larger;
     }
 }
 

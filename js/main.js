@@ -1,3 +1,15 @@
+// https://en.wikipedia.org/wiki/List_of_Solar_System_objects_by_size
+let ourSolarSystem = [
+	{pl_name: "Mercury", pl_rade: 0.3829, pl_bmasse: 0.0553, color: "#ff0000", labelYOffset: 0, labelXOffset: 0},
+	{pl_name: "Venus", pl_rade: 0.9499, pl_bmasse: 0.815, color: "#ff0000", labelYOffset: 0, labelXOffset: -50},
+	{pl_name: "Earth", pl_rade: 1, pl_bmasse: 1, color: "#ff0000", labelYOffset: -10, labelXOffset: 0},
+	{pl_name: "Mars", pl_rade: 0.5320, pl_bmasse: 0.107, color: "#ff0000", labelYOffset: 0, labelXOffset: 0},
+	{pl_name: "Jupiter", pl_rade: 10.97, pl_bmasse: 317.83, color: "#ff0000", labelYOffset: 0, labelXOffset: 0},
+	{pl_name: "Saturn", pl_rade: 9.140, pl_bmasse: 95.162, color: "#ff0000", labelYOffset: 0, labelXOffset: 0},
+	{pl_name: "Uranus", pl_rade: 3.981, pl_bmasse: 14.536, color: "#ff0000", labelYOffset: 0, labelXOffset: 0},
+	{pl_name: "Neptune", pl_rade: 3.865, pl_bmasse: 17.147, color: "#ff0000", labelYOffset: -10, labelXOffset: -65},
+]
+
 d3.csv('data/exoplanets.csv')
   .then(data => {
   	console.log('Data loading complete. Work with dataset.');
@@ -40,7 +52,7 @@ d3.csv('data/exoplanets.csv')
 	// https://d3-graph-gallery.com/graph/line_basic.html
 	drawLineChart(counts[4], "linechart", "Line Chart", "Year", "# of Exoplanets Discovered", 30)
 	// https://d3-graph-gallery.com/graph/scatter_basic.html
-	drawScatterPlot(data.filter(d => !isNaN(d.st_mass) && !isNaN(d.st_rad)), "scatterplot", "Scatter Plot", "Stellar Radius", "Stellar Mass")
+	drawScatterPlot(data.map(d => ({...d, color: "#69b3a2"})).filter(d => !isNaN(d.pl_bmasse) && !isNaN(d.pl_rade)).concat(ourSolarSystem), "scatterplot", "Scatter Plot", "Planet Radius (Earth Radius)", "Planet Mass (Earth Mass)", 30)
 })
 .catch(error => {
     console.error('Error loading the data: ' + error);
@@ -420,7 +432,7 @@ function drawScatterPlot(data, svgId, title, xLabel, yLabel, XAxisLabelHeight = 
 	// X axis
 	let x = d3.scaleLog()
 	.range([ YAxisLabelWidth, width ])
-	.domain(d3.extent(data, function(d) { return d.st_rad; }));
+	.domain(d3.extent(data, function(d) { return d.pl_rade; }));
 	svg.append("g")
 	.attr("transform", "translate(0," + (height - XAxisLabelHeight) + ")")
 	.call(d3.axisBottom(x))
@@ -430,7 +442,7 @@ function drawScatterPlot(data, svgId, title, xLabel, yLabel, XAxisLabelHeight = 
 
 	// Add Y axis
 	let y = d3.scaleLog()
-	.domain(d3.extent(data, function(d) { return d.st_mass; }))
+	.domain(d3.extent(data, function(d) { return d.pl_bmasse; }))
 	.range([ height - XAxisLabelHeight, titleheight]);
 	svg.append("g")
 	.call(d3.axisLeft(y))
@@ -442,10 +454,10 @@ function drawScatterPlot(data, svgId, title, xLabel, yLabel, XAxisLabelHeight = 
 	.data(data)
 	.enter()
 	.append("circle")
-	.attr("cx", function (d) { return x(d.st_rad); } )
-	.attr("cy", function (d) { return y(d.st_mass); } )
+	.attr("cx", function (d) { return x(d.pl_rade); } )
+	.attr("cy", function (d) { return y(d.pl_bmasse); } )
 	.attr("r", 4)
-	.style("fill", "#69b3a2")
+	.style("fill", function (d) { return d.color; })
 
 	// Title
 	svg.append("text")
@@ -468,6 +480,16 @@ function drawScatterPlot(data, svgId, title, xLabel, yLabel, XAxisLabelHeight = 
    .attr("transform", "translate(" + (width / 2) + " ," + (height + 15) + ")")
    .style("text-anchor", "middle")
    .text(xLabel);
+
+   // Labels for planets in our solar system
+   svg.append('g')
+	.selectAll("text")
+	.data(data.filter(d => d.color === "#ff0000"))
+	.enter()
+	.append("text")
+    .attr("x", function (d) { return x(d.pl_rade) + 5 + d.labelXOffset; } )
+	.attr("y", function (d) { return y(d.pl_bmasse) + 10 + d.labelYOffset; } )
+    .text(function (d) { return d.pl_name; });
 }
 
 function isInHabitableZone(specType, plOrbsMax){

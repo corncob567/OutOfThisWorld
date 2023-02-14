@@ -2,12 +2,16 @@
   flex-basis: 100%;
   margin-bottom: 10px;
 }
-#pageInfo h4, #pageInfo p, #pageInfo h2 {
+#pageInfo p, #pageInfo h2 {
   text-align: center;
   margin: 5px 4px;
 }
 #pageInfo .name {
   font-weight: 900;
+}
+#pageInfo .title {
+  font-weight: 900;
+  font-size: larger;
 }
 
 #barchart1 {
