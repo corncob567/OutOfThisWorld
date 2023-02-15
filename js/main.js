@@ -53,6 +53,7 @@ d3.csv('data/exoplanets.csv')
 	drawLineChart(counts[4], "linechart", "Line Chart", "Year", "# of Exoplanets Discovered", 30)
 	// https://d3-graph-gallery.com/graph/scatter_basic.html
 	drawScatterPlot(data.map(d => ({...d, color: "#69b3a2"})).filter(d => !isNaN(d.pl_bmasse) && !isNaN(d.pl_rade)).concat(ourSolarSystem), "scatterplot", "Scatter Plot", "Planet Radius (Earth Radius)", "Planet Mass (Earth Mass)", 30)
+	drawTable(data, ["pl_name", "st_spectype", "discoverymethod", "sy_dist", "sy_snum", "sy_pnum", "disc_year", "st_rad", "st_mass", "pl_rade", "pl_bmasse"])
 })
 .catch(error => {
     console.error('Error loading the data: ' + error);
@@ -62,7 +63,7 @@ d3.csv('data/exoplanets.csv')
 function drawBarChart(counts, svgId, title, xLabel, yLabel, XAxisLabelHeight = 20){
 	const margin = {top: 30, right: 30, bottom: 20, left: 50};
 
-	const width = 375 - margin.left - margin.right;
+	const width = 300 - margin.left - margin.right;
 	const height = 412 - margin.top - margin.bottom;
 	const titleheight = 30
 	const YAxisLabelWidth = 20
@@ -100,6 +101,7 @@ function drawBarChart(counts, svgId, title, xLabel, yLabel, XAxisLabelHeight = 2
     .data(counts)
 	.enter()
     .append("rect")
+	.attr('class', 'bar')
     .attr("x", function(d) { return x(d.k);})
     .attr("width", x.bandwidth())
     .attr("y", function(d) { return y(d.frequency);})
@@ -134,7 +136,7 @@ function drawBarChart(counts, svgId, title, xLabel, yLabel, XAxisLabelHeight = 2
 function drawGroupedBarChart(data, svgId, title, xLabel, yLabel, XAxisLabelHeight = 20){
 	const margin = {top: 30, right: 30, bottom: 20, left: 50};
 
-	const width = 375 - margin.left - margin.right;
+	const width = 300 - margin.left - margin.right;
 	const height = 412 - margin.top - margin.bottom;
 	const titleheight = 30
 	const YAxisLabelWidth = 20
@@ -155,7 +157,7 @@ function drawGroupedBarChart(data, svgId, title, xLabel, yLabel, XAxisLabelHeigh
 	let legendRect = legend.selectAll('circle').data(colors);
 	legendRect.enter()
 		.append("circle")
-		.attr("cx", width - 85)
+		.attr("cx", width - 55)
 		.attr("r", 6)
 		.attr("width", 10)
 		.attr("height", 10)
@@ -169,9 +171,10 @@ function drawGroupedBarChart(data, svgId, title, xLabel, yLabel, XAxisLabelHeigh
 	let legendText = legend.selectAll('text').data(colors);
 	legendText.enter()
 		.append("text")
-		.attr("x", width - 70)
+		.attr("font-size", 12)
+		.attr("x", width - 45)
 		.attr("y", function(d, i) {
-			return i * 20 + 9;
+			return i * 20 + 7;
 		})
 		.text(function(d) {
 			return d[0];
@@ -206,6 +209,7 @@ function drawGroupedBarChart(data, svgId, title, xLabel, yLabel, XAxisLabelHeigh
 
 	// Bars
     multigraph.append("rect")
+	.attr('class', 'bar')
     .attr("x", function(d) { return x(d.specType);})
     .attr("width", x.bandwidth() / 2)
     .attr("y", function(d) { return y(d.inhabitable);})
@@ -216,13 +220,14 @@ function drawGroupedBarChart(data, svgId, title, xLabel, yLabel, XAxisLabelHeigh
 	.attr("fill", "#c09c9f");
 
 	multigraph.append("rect")
+	.attr('class', 'bar')
     .attr("x", function(d) { return x(d.specType);})
     .attr("width", x.bandwidth() / 2)
     .attr("y", function(d) { return y(d.habitable);})
     .attr("height", function(d) {
 		return height- XAxisLabelHeight - y(d.habitable);
     })
-	.attr("transform", "translate(" + 45 + "," + 0 + ")")
+	.attr("transform", "translate(" + 37 + "," + 0 + ")")
 	.attr("fill", "#395943");
 
 	// Title
@@ -251,7 +256,7 @@ function drawGroupedBarChart(data, svgId, title, xLabel, yLabel, XAxisLabelHeigh
 function drawHistogram(data, svgId, title, xLabel, yLabel, XAxisLabelHeight = 20){
 	const margin = {top: 30, right: 30, bottom: 20, left: 50};
 
-	const width = 375 - margin.left - margin.right;
+	const width = 300 - margin.left - margin.right;
 	const height = 412 - margin.top - margin.bottom;
 	const titleheight = 30
 	const YAxisLabelWidth = 20
@@ -300,6 +305,7 @@ function drawHistogram(data, svgId, title, xLabel, yLabel, XAxisLabelHeight = 20
 		// Manage the existing bars and newly added ones
 		u.enter()
 			.append("rect")
+			.attr('class', 'bar')
 			.merge(u) // merge existing elements
 			.transition() // apply changes to all of them
 			.duration(1000)
@@ -322,7 +328,7 @@ function drawHistogram(data, svgId, title, xLabel, yLabel, XAxisLabelHeight = 20
 
 	// Title
 	svg.append("text")
-   .attr("x", width / 2 - 40)
+   .attr("x", width / 2 - 80)
    .attr("y", 10)
    .attr("text-anchor", "middle")
    .style("font-size", "24px")
@@ -348,7 +354,7 @@ function drawLineChart(counts, svgId, title, xLabel, yLabel, XAxisLabelHeight = 
 	
 	const margin = {top: 30, right: 30, bottom: 20, left: 50};
 
-	const width = 750 - margin.left - margin.right;
+	const width = 600 - margin.left - margin.right;
 	const height = 412 - margin.top - margin.bottom;
 	const titleheight = 30
 	const YAxisLabelWidth = 20
@@ -418,7 +424,7 @@ function drawLineChart(counts, svgId, title, xLabel, yLabel, XAxisLabelHeight = 
 function drawScatterPlot(data, svgId, title, xLabel, yLabel, XAxisLabelHeight = 20){
 	const margin = {top: 30, right: 30, bottom: 20, left: 50};
 
-	const width = 750 - margin.left - margin.right;
+	const width = 600 - margin.left - margin.right;
 	const height = 412 - margin.top - margin.bottom;
 	const titleheight = 30
 	const YAxisLabelWidth = 20
@@ -490,6 +496,38 @@ function drawScatterPlot(data, svgId, title, xLabel, yLabel, XAxisLabelHeight = 
     .attr("x", function (d) { return x(d.pl_rade) + 5 + d.labelXOffset; } )
 	.attr("y", function (d) { return y(d.pl_bmasse) + 10 + d.labelYOffset; } )
     .text(function (d) { return d.pl_name; });
+}
+
+function drawTable(data, columns) {
+	let table = d3.select('#planetDataTable').append('table').attr('class', 'table-auto')
+	let thead = table.append('thead')
+	let	tbody = table.append('tbody');
+
+	// append the header row
+	thead.append('tr')
+	  .selectAll('th')
+	  .data(columns).enter()
+	  .append('th')
+	  .text(function (column) { return column; });
+
+	// create a row for each object in the data
+	let rows = tbody.selectAll('tr')
+	  .data(data)
+	  .enter()
+	  .append('tr');
+
+	// create a cell in each row for each column
+	let cells = rows.selectAll('td')
+	  .data(function (row) {
+	    return columns.map(function (column) {
+	      return {column: column, value: row[column]};
+	    });
+	  })
+	  .enter()
+	  .append('td')
+	    .text(function (d) { return d.value; });
+
+  return table;
 }
 
 function isInHabitableZone(specType, plOrbsMax){
