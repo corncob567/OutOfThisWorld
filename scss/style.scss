@@ -1,6 +1,15 @@
+body{
+    background-image: url("/images/space.jpg");
+    background-size: cover;
+    margin-top: 0px;
+}
+
 #pageInfo{
     flex-basis: 100%;
     margin-bottom: 10px;
+    background-color: aliceblue;
+    position: sticky;
+    top: 0px;
     p, h2{
         text-align: center;
         margin: 5px 4px;
@@ -48,16 +57,29 @@
     background-color: rgb(198, 232, 221);
 }
 #planetDataTable{
-    flex-basis: 100%;
-    table tbody{
-        width: 100%;
-        height: 390px;
-        overflow-y: scroll;
-        display: block;
+    overflow-y: auto;
+    height: 200px;
+    table, th, td{
+        border: 1px solid black;
+        border-collapse: collapse;
     }
-    table thead{
-        display: block;
-    }  
+    th, td{
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+    thead th {
+        background-color: aliceblue;
+        position: sticky;
+        top: -1px;
+    }
+    tbody tr:nth-child(odd){
+        background: #c6d6f2;
+        color: #000000;
+      }
+    tbody tr:nth-child(even){
+    background: #ffffff;
+    color: #000000;
+    }
 }
 
 .flex-container{

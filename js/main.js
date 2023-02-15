@@ -499,7 +499,7 @@ function drawScatterPlot(data, svgId, title, xLabel, yLabel, XAxisLabelHeight = 
 }
 
 function drawTable(data, columns) {
-	let table = d3.select('#planetDataTable').append('table').attr('class', 'table-auto')
+	let table = d3.select('#planetDataTable').append('table')
 	let thead = table.append('thead')
 	let	tbody = table.append('tbody');
 

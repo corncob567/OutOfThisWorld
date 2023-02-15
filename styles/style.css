@@ -1,6 +1,15 @@
+body {
+  background-image: url("/images/space.jpg");
+  background-size: cover;
+  margin-top: 0px;
+}
+
 #pageInfo {
   flex-basis: 100%;
   margin-bottom: 10px;
+  background-color: aliceblue;
+  position: sticky;
+  top: 0px;
 }
 #pageInfo p, #pageInfo h2 {
   text-align: center;
@@ -58,16 +67,29 @@
 }
 
 #planetDataTable {
-  flex-basis: 100%;
+  overflow-y: auto;
+  height: 200px;
 }
-#planetDataTable table tbody {
-  width: 100%;
-  height: 390px;
-  overflow-y: scroll;
-  display: block;
+#planetDataTable table, #planetDataTable th, #planetDataTable td {
+  border: 1px solid black;
+  border-collapse: collapse;
 }
-#planetDataTable table thead {
-  display: block;
+#planetDataTable th, #planetDataTable td {
+  padding-left: 5px;
+  padding-right: 5px;
+}
+#planetDataTable thead th {
+  background-color: aliceblue;
+  position: sticky;
+  top: -1px;
+}
+#planetDataTable tbody tr:nth-child(odd) {
+  background: #c6d6f2;
+  color: #000000;
+}
+#planetDataTable tbody tr:nth-child(even) {
+  background: #ffffff;
+  color: #000000;
 }
 
 .flex-container {
