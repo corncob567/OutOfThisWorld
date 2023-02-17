@@ -7,7 +7,7 @@ let ourSolarSystem = [
 	{pl_name: "Jupiter", pl_rade: 10.97, pl_bmasse: 317.83, color: "#ff0000", labelYOffset: 0, labelXOffset: 0},
 	{pl_name: "Saturn", pl_rade: 9.140, pl_bmasse: 95.162, color: "#ff0000", labelYOffset: 0, labelXOffset: 0},
 	{pl_name: "Uranus", pl_rade: 3.981, pl_bmasse: 14.536, color: "#ff0000", labelYOffset: 0, labelXOffset: 0},
-	{pl_name: "Neptune", pl_rade: 3.865, pl_bmasse: 17.147, color: "#ff0000", labelYOffset: -10, labelXOffset: -65},
+	{pl_name: "Neptune", pl_rade: 3.865, pl_bmasse: 17.147, color: "#ff0000", labelYOffset: -10, labelXOffset: -70},
 ]
 
 d3.csv('data/exoplanets.csv')
@@ -97,7 +97,7 @@ function drawBarChart(counts, svgId, title, xLabel, yLabel, XAxisLabelHeight = 2
 	.attr("transform", "translate(" + YAxisLabelWidth + ", 0)");
 
 	// Bars
-	svg.selectAll("rect")
+	bars = svg.selectAll("rect")
     .data(counts)
 	.enter()
     .append("rect")
@@ -109,6 +109,20 @@ function drawBarChart(counts, svgId, title, xLabel, yLabel, XAxisLabelHeight = 2
 		return height- XAxisLabelHeight - y(d.frequency);
     })
 	.attr("fill", "#69b3a2");
+
+	bars.on('mouseover', (event, d) => {
+		d3.select('#tooltip')
+		.style('display', 'block')
+		.style('left', (event.pageX + 15) + 'px')   
+		.style('top', (event.pageY + 15) + 'px')
+		.html(`
+			<div class="tooltip-title">${xLabel}: ${d.k}</div>
+			<div class="tooltip-title">${yLabel}: ${d.frequency}</div>
+		`);
+	})
+	.on('mouseleave', () => {
+		d3.select('#tooltip').style('display', 'none');
+	});
 
 	// Title
 	svg.append("text")
@@ -230,6 +244,20 @@ function drawGroupedBarChart(data, svgId, title, xLabel, yLabel, XAxisLabelHeigh
 	.attr("transform", "translate(" + 37 + "," + 0 + ")")
 	.attr("fill", "#395943");
 
+	// multigraph.on('mouseover', (event, d) => {
+	// 	d3.select('#tooltip')
+	// 	.style('display', 'block')
+	// 	.style('left', (event.pageX + 15) + 'px')   
+	// 	.style('top', (event.pageY + 15) + 'px')
+	// 	.html(`
+	// 		<div class="tooltip-title">${xLabel}: ${d.k}</div>
+	// 		<div class="tooltip-title">${yLabel}: ${d.frequency}</div>
+	// 	`);
+	// })
+	// .on('mouseleave', () => {
+	// 	d3.select('#tooltip').style('display', 'none');
+	// });
+
 	// Title
 	svg.append("text")
    .attr("x", width / 2 - 40)
@@ -285,7 +313,7 @@ function drawHistogram(data, svgId, title, xLabel, yLabel, XAxisLabelHeight = 20
 	// Builds the graph for a specific value of bin
 	function update(nBin) {
 		let histogram = d3.histogram()
-			.value(function(d) { return d.sy_dist; })  
+			.value(function(d) { return d.sy_dist; })
 			.domain(x.domain())
 			.thresholds(x.ticks(nBin)); // # of bins
 
@@ -298,13 +326,11 @@ function drawHistogram(data, svgId, title, xLabel, yLabel, XAxisLabelHeight = 20
 			.duration(1000)
 			.call(d3.axisLeft(y));
 
-		// Join the rect with the bins data
 		let u = svg.selectAll("rect")
 			.data(bins)
 
 		// Manage the existing bars and newly added ones
-		u.enter()
-			.append("rect")
+		u.join("rect")
 			.attr('class', 'bar')
 			.merge(u) // merge existing elements
 			.transition() // apply changes to all of them
@@ -317,6 +343,24 @@ function drawHistogram(data, svgId, title, xLabel, yLabel, XAxisLabelHeight = 20
 
 			// If less bars exist in the new histogram, delete bars no longer in use
 			u.exit().remove()
+	
+		u.selectAll("rect").on('mouseover', (event, d) => {
+			console.log("hi")
+			d3.select('#tooltip')
+			.style('display', 'block')
+			.style('left', (event.pageX + 15) + 'px')   
+			.style('top', (event.pageY + 15) + 'px')
+			.html(`
+				<div class="tooltip-title">${d.pl_name}</div>
+				<ul>
+				<li>Earth Radius: ${d.pl_rade}</li>
+				<li>Earth Mass: ${d.pl_bmasse}</li>
+				</ul>
+			`);
+		})
+		.on('mouseleave', () => {
+			d3.select('#tooltip').style('display', 'none');
+		});
 	}
 
 	// Initialize the histogram with 20 bins
@@ -455,11 +499,10 @@ function drawScatterPlot(data, svgId, title, xLabel, yLabel, XAxisLabelHeight = 
 	.attr("transform", "translate(" + YAxisLabelWidth + ", 0)");
 
 	// Add dots
-	svg.append('g')
+	let scatterplotcircles = svg.append('g')
 	.selectAll("dot")
 	.data(data)
-	.enter()
-	.append("circle")
+	.join("circle")
 	.attr("cx", function (d) { return x(d.pl_rade); } )
 	.attr("cy", function (d) { return y(d.pl_bmasse); } )
 	.attr("r", 4)
@@ -467,35 +510,56 @@ function drawScatterPlot(data, svgId, title, xLabel, yLabel, XAxisLabelHeight = 
 
 	// Title
 	svg.append("text")
-   .attr("x", width / 2)
-   .attr("y", 10)
-   .attr("text-anchor", "middle")
-   .style("font-size", "24px")
-   .text(title);
+	.attr("x", width / 2)
+	.attr("y", 10)
+	.attr("text-anchor", "middle")
+	.style("font-size", "24px")
+	.text(title);
 
-   // Y-Axis Label
-   svg.append("text")
-   .attr("transform", "rotate(-90)")
-   .attr("x", -(height / 2))
-   .attr("y", -30)
-   .style("text-anchor", "middle")
-   .text(yLabel);
+	// Y-Axis Label
+	svg.append("text")
+	.attr("transform", "rotate(-90)")
+	.attr("x", -(height / 2))
+	.attr("y", -30)
+	.style("text-anchor", "middle")
+	.text(yLabel);
 
-   // X-Axis Label
-   svg.append("text")
-   .attr("transform", "translate(" + (width / 2) + " ," + (height + 15) + ")")
-   .style("text-anchor", "middle")
-   .text(xLabel);
+	// X-Axis Label
+	svg.append("text")
+	.attr("transform", "translate(" + (width / 2) + " ," + (height + 15) + ")")
+	.style("text-anchor", "middle")
+	.text(xLabel);
 
-   // Labels for planets in our solar system
-   svg.append('g')
+	// Labels for planets in our solar system
+	svg.append('g')
 	.selectAll("text")
 	.data(data.filter(d => d.color === "#ff0000"))
 	.enter()
 	.append("text")
-    .attr("x", function (d) { return x(d.pl_rade) + 5 + d.labelXOffset; } )
+	.attr("class", "solarSystemLabel")
+	.attr("x", function (d) { return x(d.pl_rade) + 5 + d.labelXOffset; } )
 	.attr("y", function (d) { return y(d.pl_bmasse) + 10 + d.labelYOffset; } )
-    .text(function (d) { return d.pl_name; });
+	.attr("font-weight", 600)
+	.text(function (d) { return d.pl_name; });
+
+	// Tooltip event listeners
+    scatterplotcircles
+        .on('mouseover', (event, d) => {
+			d3.select('#tooltip')
+			.style('display', 'block')
+			.style('left', (event.pageX + 15) + 'px')   
+			.style('top', (event.pageY + 15) + 'px')
+			.html(`
+				<div class="tooltip-title">${d.pl_name}</div>
+				<ul>
+				<li>Earth Radius: ${d.pl_rade}</li>
+				<li>Earth Mass: ${d.pl_bmasse}</li>
+				</ul>
+			`);
+        })
+        .on('mouseleave', () => {
+			d3.select('#tooltip').style('display', 'none');
+        });
 }
 
 function drawTable(data, columns) {
