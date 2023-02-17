@@ -224,6 +224,7 @@ function drawGroupedBarChart(data, svgId, title, xLabel, yLabel, XAxisLabelHeigh
 	// Bars
     multigraph.append("rect")
 	.attr('class', 'bar')
+	.attr('class', 'uninhabitableBar')
     .attr("x", function(d) { return x(d.specType);})
     .attr("width", x.bandwidth() / 2)
     .attr("y", function(d) { return y(d.inhabitable);})
@@ -235,6 +236,7 @@ function drawGroupedBarChart(data, svgId, title, xLabel, yLabel, XAxisLabelHeigh
 
 	multigraph.append("rect")
 	.attr('class', 'bar')
+	.attr('class', 'habitableBar')
     .attr("x", function(d) { return x(d.specType);})
     .attr("width", x.bandwidth() / 2)
     .attr("y", function(d) { return y(d.habitable);})
@@ -244,19 +246,39 @@ function drawGroupedBarChart(data, svgId, title, xLabel, yLabel, XAxisLabelHeigh
 	.attr("transform", "translate(" + 37 + "," + 0 + ")")
 	.attr("fill", "#395943");
 
-	// multigraph.on('mouseover', (event, d) => {
-	// 	d3.select('#tooltip')
-	// 	.style('display', 'block')
-	// 	.style('left', (event.pageX + 15) + 'px')   
-	// 	.style('top', (event.pageY + 15) + 'px')
-	// 	.html(`
-	// 		<div class="tooltip-title">${xLabel}: ${d.k}</div>
-	// 		<div class="tooltip-title">${yLabel}: ${d.frequency}</div>
-	// 	`);
-	// })
-	// .on('mouseleave', () => {
-	// 	d3.select('#tooltip').style('display', 'none');
-	// });
+	svg.selectAll(".habitableBar").on('mouseover', (event, d) => {
+		d3.select('#tooltip')
+		.style('display', 'block')
+		.style('left', (event.pageX + 15) + 'px')   
+		.style('top', (event.pageY + 15) + 'px')
+		.html(`
+			<div class="tooltip-title">Habitable</div>
+			<ul>
+			<li>Star Type: ${d.specType}</li>
+			<li># of Exoplanets: ${d.habitable}</li>
+			</ul>
+		`);
+	})
+	.on('mouseleave', () => {
+		d3.select('#tooltip').style('display', 'none');
+	});
+
+	svg.selectAll(".uninhabitableBar").on('mouseover', (event, d) => {
+		d3.select('#tooltip')
+		.style('display', 'block')
+		.style('left', (event.pageX + 15) + 'px')   
+		.style('top', (event.pageY + 15) + 'px')
+		.html(`
+			<div class="tooltip-title">Uninhabitable</div>
+			<ul>
+			<li>Star Type: ${d.specType}</li>
+			<li># of Exoplanets: ${d.inhabitable}</li>
+			</ul>
+		`);
+	})
+	.on('mouseleave', () => {
+		d3.select('#tooltip').style('display', 'none');
+	});
 
 	// Title
 	svg.append("text")
@@ -344,17 +366,16 @@ function drawHistogram(data, svgId, title, xLabel, yLabel, XAxisLabelHeight = 20
 			// If less bars exist in the new histogram, delete bars no longer in use
 			u.exit().remove()
 	
-		u.selectAll("rect").on('mouseover', (event, d) => {
-			console.log("hi")
+		svg.selectAll("rect").on('mouseover', (event, d) => {
+			console.log(x.ticks(nBin))
 			d3.select('#tooltip')
 			.style('display', 'block')
 			.style('left', (event.pageX + 15) + 'px')   
 			.style('top', (event.pageY + 15) + 'px')
 			.html(`
-				<div class="tooltip-title">${d.pl_name}</div>
 				<ul>
-				<li>Earth Radius: ${d.pl_rade}</li>
-				<li>Earth Mass: ${d.pl_bmasse}</li>
+				<li>${xLabel}: ${d.x0}-${d.x1}</li>
+				<li>${yLabel}: ${d.length}</li>
 				</ul>
 			`);
 		})
@@ -463,6 +484,87 @@ function drawLineChart(counts, svgId, title, xLabel, yLabel, XAxisLabelHeight = 
    .attr("transform", "translate(" + (width / 2) + " ," + (height + 15) + ")")
    .style("text-anchor", "middle")
    .text(xLabel);
+
+	// Append focus group with x- and y-axes
+	let focus = svg.append('g')
+	.attr('transform', `translate(${margin.left},${margin.top})`);
+
+	focus.append('defs').append('clipPath')
+	.attr('id', 'clip')
+	.append('rect')
+	.attr('width', width)
+	.attr('height', height);
+
+	let focusLinePath = focus.append('path')
+	.attr('class', 'chart-line');
+
+	let xAxisFocusG = focus.append('g')
+	.attr('class', 'axis x-axis')
+	.attr('transform', `translate(0,${height})`);
+
+	let yAxisFocusG = focus.append('g')
+	.attr('class', 'axis y-axis');
+
+	let tooltipTrackingArea = focus.append('rect')
+	.attr('width', width)
+	.attr('height', height)
+	.attr('fill', 'none')
+	.attr('pointer-events', 'all');
+
+	// Empty tooltip group (hidden by default)
+	let tooltip = focus.append('g')
+	.attr('class', 'tooltip')
+	.style('display', 'none');
+
+	tooltip.append('circle')
+	.attr('r', 4);
+
+	tooltip.append('text');
+
+	tooltipTrackingArea = focus.append('rect')
+	.attr('width', width)
+	.attr('height', height)
+	.attr('fill', 'none')
+	.attr('pointer-events', 'all');
+
+	let xValue = d => d.k;
+	let xScaleFocus = d3.scaleTime().range([0, width]);
+	xScaleFocus.domain(d3.extent(counts, xValue));
+
+	let yValue = d => d.frequency;
+	let yScaleFocus = d3.scaleLinear()
+        .range([height, 0])
+        .nice();
+	yScaleFocus.domain(d3.extent(counts, yValue));
+
+	bisectDate = d3.bisector(xValue).left;
+
+	tooltipTrackingArea
+	.on('mouseenter', () => {
+		tooltip.style('display', 'block');
+	})
+	.on('mouseleave', () => {
+		tooltip.style('display', 'none');
+	})
+	.on('mousemove', function(event) {
+		// Get date that corresponds to current mouse x-coordinate
+		const xPos = d3.pointer(event, this)[0]; // First array element is x, second is y
+		const date = xScaleFocus.invert(xPos);
+
+		// Find nearest data point
+		const index = bisectDate(counts, date, 1);
+		const a = counts[index - 1];
+		const b = counts[index];
+		const d = b && (date - a.date > b.date - date) ? b : a; 
+
+		// Update tooltip
+		tooltip.select('circle')
+			.attr('transform', `translate(${xScaleFocus(d.date)},${yScaleFocus(d.frequency)})`);
+		
+		tooltip.select('text')
+			.attr('transform', `translate(${xScaleFocus(d.date)},${(yScaleFocus(d.frequency) - 15)})`)
+			.text(Math.round(d.close));
+	});
 }
 
 function drawScatterPlot(data, svgId, title, xLabel, yLabel, XAxisLabelHeight = 20){
