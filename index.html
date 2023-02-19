@@ -16,10 +16,10 @@
                 | Data Visualization performed using D3</span>
             </p>
         </div>
-        <div id="barchart1"></div>
-        <div id="barchart2"></div>
-        <div id="barchart3"></div>
-        <div id="barchart4"></div>
+        <div><svg id="barchart1"></svg></div>
+        <div><svg id="barchart2"></svg></div>
+        <div><svg id="barchart3"></svg></div>
+        <div><svg id="barchart4"></svg></div>
         <div>
             <div id="dualbarchart"></div>
         </div>
@@ -31,7 +31,7 @@
             </p>
         </div>
         <div class="lineChartHolder">
-            <div id="linechart"></div>
+            <svg id="linechart"></svg>
         </div>
         <div class="scatterPlotHolder">
             <div id="scatterplot"></div>
@@ -42,6 +42,8 @@
     <div id="tooltip"></div>
     
     <script src="js/d3.v6.min.js"></script>
+    <script src="js/barchart.js"></script>
+    <script src="js/linechart.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>

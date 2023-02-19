@@ -4,6 +4,10 @@ body {
   margin-top: 0px;
 }
 
+.bar {
+  fill: rgb(105, 179, 162);
+}
+
 #pageInfo {
   flex-basis: 100%;
   margin-bottom: 10px;
@@ -11,7 +15,7 @@ body {
   position: sticky;
   top: 0px;
 }
-#pageInfo p, #pageInfo h2 {
+#pageInfo p {
   text-align: center;
   margin: 5px 4px;
 }
@@ -54,12 +58,16 @@ body {
   transform: translate(150px, -410px);
 }
 
-#linechart {
-  background-color: rgb(203, 203, 245);
-}
-
 .lineChartHolder {
   flex-basis: auto;
+  background-color: rgb(203, 203, 245);
+}
+.lineChartHolder #linechart .chart-line {
+  fill: none;
+  stroke: rgb(105, 179, 162);
+  stroke-width: 3px;
+  -webkit-clip-path: url(#clip);
+          clip-path: url(#clip);
 }
 
 #scatterplot {

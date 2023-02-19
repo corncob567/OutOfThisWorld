@@ -4,13 +4,17 @@ body{
     margin-top: 0px;
 }
 
+.bar{
+    fill: rgb(105, 179, 162);
+}
+
 #pageInfo{
     flex-basis: 100%;
     margin-bottom: 10px;
     background-color: aliceblue;
     position: sticky;
     top: 0px;
-    p, h2{
+    p{
         text-align: center;
         margin: 5px 4px;
     }
@@ -26,32 +30,48 @@ body{
 #barchart1{
     background-color: rgb(204, 237, 219);
 }
+
 #barchart2{
     background-color: rgb(242, 222, 217);
 }
+
 #barchart3{
     background-color: rgb(223, 238, 247);
 }
+
 #barchart4{
     background-color: rgb(238, 243, 186);
+    // text{
+    //     transform: translate(0px, 40px)rotate(45deg);
+    // }
 }
+
 #dualbarchart{
     background-color: rgb(249, 212, 251);
 }
+
 .histHolder{
     margin-bottom: -53px;
     #histogram{
         background-color: rgb(238, 214, 184);
     }
 }
+
 .binInput{
     transform: translate(150px, -410px);
 }
-#linechart{
-    background-color: rgb(203, 203, 245);
-}
+
 .lineChartHolder{
     flex-basis: auto;
+    background-color: rgb(203, 203, 245);
+    #linechart{
+        .chart-line {
+            fill: none;
+            stroke: rgb(105, 179, 162);
+            stroke-width: 3px;
+            clip-path: url(#clip);
+        }
+    }
 }
 #scatterplot{
     background-color: rgb(198, 232, 221);
@@ -61,6 +81,7 @@ body{
         paint-order: stroke;
     }
 }
+
 #planetDataTable{
     overflow-y: auto;
     height: 200px;
