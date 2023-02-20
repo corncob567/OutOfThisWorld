@@ -17,6 +17,26 @@ class Barchart {
         this.data = _data;
         this.aggregateAttr = _aggregateAttr;
         this.initVis();
+        this.updateVis = function(){
+            let vis = this;
+            const aggregatedDataMap = d3.rollups(vis.data, v => v.length, d => d[this.aggregateAttr]);
+            vis.aggregatedData = Array.from(aggregatedDataMap, ([key, count]) => ({ key, count }));
+    
+            if(this.aggregateAttr === "st_spectype"){
+                vis.aggregatedData = vis.aggregatedData.filter(obj => ["A", "F", "G", "K", "M", "Unknown"].includes(obj.key))
+            }
+    
+            vis.aggregatedData.sort(this.compare);
+    
+            vis.xValue = d => d.key;
+            vis.yValue = d => d.count;
+    
+            // Set the scale input domains
+            vis.xScale.domain(vis.aggregatedData.map(vis.xValue));
+            vis.yScale.domain([0, d3.max(vis.aggregatedData, vis.yValue)]);
+    
+            vis.renderVis();
+        }
     }
 
     initVis() {
@@ -100,27 +120,6 @@ class Barchart {
         return 0;
     }
 
-    updateVis() {
-        let vis = this;
-        const aggregatedDataMap = d3.rollups(vis.data, v => v.length, d => d[this.aggregateAttr]);
-        vis.aggregatedData = Array.from(aggregatedDataMap, ([key, count]) => ({ key, count }));
-
-        if(this.aggregateAttr === "st_spectype"){
-            vis.aggregatedData = vis.aggregatedData.filter(obj => ["A", "F", "G", "K", "M", "Unknown"].includes(obj.key))
-        }
-
-        vis.aggregatedData.sort(this.compare);
-
-        vis.xValue = d => d.key;
-        vis.yValue = d => d.count;
-
-        // Set the scale input domains
-        vis.xScale.domain(vis.aggregatedData.map(vis.xValue));
-        vis.yScale.domain([0, d3.max(vis.aggregatedData, vis.yValue)]);
-
-        vis.renderVis();
-    }
-
     /**
      * Bind data to visual elements
      */
@@ -130,22 +129,42 @@ class Barchart {
         // Add rectangles
         const bars = vis.chart.selectAll('.bar')
             .data(vis.aggregatedData, vis.xValue)
-        .join('rect')
+            .join('rect')
             .attr('class', 'bar')
             .attr('x', d => vis.xScale(vis.xValue(d)))
             .attr('width', vis.xScale.bandwidth() * .9)
             .attr('transform', `translate(${vis.xScale.bandwidth() * .05}, 0)`)
+            // .attr('height', d => vis.height - vis.yScale(vis.yValue(d)))
+            // .attr('y', d => vis.yScale(vis.yValue(d)))
+            .attr('y', vis.yScale(0))
+            .attr('height', 0)
+            .attr('class', function(d) {
+                if(globalDataFilter.find(f => (f[0] === vis.aggregateAttr && f[1] === d.key))){
+                    return 'bar active'
+                }else{
+                    return 'bar'
+                }
+            });
+
+            bars.transition().duration(1000)
             .attr('height', d => vis.height - vis.yScale(vis.yValue(d)))
-            .attr('y', d => vis.yScale(vis.yValue(d)))
-            .on('click', function(event, d) {
-            const isActive = difficultyFilter.includes(d.key);
-            if (isActive) {
-                difficultyFilter = difficultyFilter.filter(f => f !== d.key); // Remove filter
-            } else {
-                difficultyFilter.push(d.key); // Append filter
-            }
-            filterData(); // Call global function to update scatter plot
-            d3.select(this).classed('active', !isActive); // Add class to style active filters with CSS
+            .attr('y', d => vis.yScale(vis.yValue(d)));
+
+            bars.on('click', function(event, d) {
+                let isActive = globalDataFilter.find(f => (f[0] === vis.aggregateAttr && f[1] === d.key))
+                console.log(isActive)
+                if (globalDataFilter.includes(isActive)) {
+                    //console.log("removing filter")
+                    const index = globalDataFilter.indexOf(isActive);
+                    if (index > -1) { // only splice array when item is found
+                        globalDataFilter.splice(index, 1); // only removes the one item at index
+                    }
+                } else {
+                    //console.log("pushing new filter")
+                    globalDataFilter.push([vis.aggregateAttr, d.key]); // Append filter
+                }
+                filterData(); // Call global function to update visuals
+                d3.select(this).classed('active', !isActive);
             });
 
         bars.on('mouseover', (event, d) => {

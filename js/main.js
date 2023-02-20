@@ -1,3 +1,7 @@
+let data;
+let globalDataFilter = [];
+let filterableVisualizations = [];
+
 // https://en.wikipedia.org/wiki/List_of_Solar_System_objects_by_size
 let ourSolarSystem = [
 	{pl_name: "Mercury", pl_rade: 0.3829, pl_bmasse: 0.0553, color: "#ff0000", labelYOffset: 0, labelXOffset: 0},
@@ -11,7 +15,8 @@ let ourSolarSystem = [
 ]
 
 d3.csv('data/exoplanets.csv')
-  .then(data => {
+  .then(_data => {
+	data = _data;
   	console.log('Data loading complete. Work with dataset.');
     data.forEach(d => {
 		// Attributes with BLANK where there would normally be numerical values will return NaN
@@ -76,6 +81,8 @@ d3.csv('data/exoplanets.csv')
 	// https://d3-graph-gallery.com/graph/scatter_basic.html
 	drawScatterPlot(data.map(d => ({...d, color: "#69b3a2"})).filter(d => !isNaN(d.pl_bmasse) && !isNaN(d.pl_rade)).concat(ourSolarSystem), "scatterplot", "Scatter Plot", "Planet Radius (Earth Radius)", "Planet Mass (Earth Mass)", 30)
 	drawTable(data, ["pl_name", "st_spectype", "discoverymethod", "sy_dist", "sy_snum", "sy_pnum", "disc_year", "st_rad", "st_mass", "pl_rade", "pl_bmasse"])
+
+	filterableVisualizations = [barchart1, barchart2, barchart3, barchart4]
 })
 .catch(error => {
     console.error('Error loading the data: ' + error);
@@ -652,3 +659,26 @@ function getCounts(data) {
 
 	return countArrays;
 };
+
+function filterData() {
+	if (globalDataFilter.length == 0) {
+		filterableVisualizations.forEach(v => {
+			v.data = data;
+		})
+	} else {
+		filterableVisualizations.forEach(v => {
+			v.data = data.filter(d => {
+				for (i in globalDataFilter){
+					let filter = globalDataFilter[i]
+					if(d[filter[0]] !== filter[1]){
+						return false
+					}
+				}
+				return true
+			})
+		})
+	}
+	filterableVisualizations.forEach(v => {
+		v.updateVis();
+	})
+}
