@@ -19,7 +19,7 @@ class LineChart {
         }
         this.data = _data;
 
-        // getting rid of commas
+        // getting rid of commas in years on the y-axis
         let parseTime = d3.timeParse("%Y");
             this.data.forEach(function(d) {
             d.k = parseTime(d.k);

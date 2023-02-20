@@ -134,13 +134,11 @@ class Barchart {
             .attr('x', d => vis.xScale(vis.xValue(d)))
             .attr('width', vis.xScale.bandwidth() * .9)
             .attr('transform', `translate(${vis.xScale.bandwidth() * .05}, 0)`)
-            // .attr('height', d => vis.height - vis.yScale(vis.yValue(d)))
-            // .attr('y', d => vis.yScale(vis.yValue(d)))
             .attr('y', vis.yScale(0))
             .attr('height', 0)
             .attr('class', function(d) {
                 if(globalDataFilter.find(f => (f[0] === vis.aggregateAttr && f[1] === d.key))){
-                    return 'bar active'
+                    return 'bar active' // adding active class to newly rendered bars that were already a filter
                 }else{
                     return 'bar'
                 }
@@ -154,14 +152,12 @@ class Barchart {
                 let isActive = globalDataFilter.find(f => (f[0] === vis.aggregateAttr && f[1] === d.key))
                 console.log(isActive)
                 if (globalDataFilter.includes(isActive)) {
-                    //console.log("removing filter")
                     const index = globalDataFilter.indexOf(isActive);
-                    if (index > -1) { // only splice array when item is found
-                        globalDataFilter.splice(index, 1); // only removes the one item at index
+                    if (index > -1) {
+                        globalDataFilter.splice(index, 1); // only removes specific filter at index
                     }
                 } else {
-                    //console.log("pushing new filter")
-                    globalDataFilter.push([vis.aggregateAttr, d.key]); // Append filter
+                    globalDataFilter.push([vis.aggregateAttr, d.key]); // Append new filter
                 }
                 filterData(); // Call global function to update visuals
                 d3.select(this).classed('active', !isActive);
