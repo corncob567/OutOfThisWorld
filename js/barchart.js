@@ -17,37 +17,14 @@ class Barchart {
         this.data = _data;
         this.aggregateAttr = _aggregateAttr;
         this.initVis();
-        this.updateVis = function(){
-            let vis = this;
-            const aggregatedDataMap = d3.rollups(vis.data, v => v.length, d => d[this.aggregateAttr]);
-            vis.aggregatedData = Array.from(aggregatedDataMap, ([key, count]) => ({ key, count }));
-    
-            if(this.aggregateAttr === "st_spectype"){
-                vis.aggregatedData = vis.aggregatedData.filter(obj => ["A", "F", "G", "K", "M", "Unknown"].includes(obj.key))
-            }
-    
-            vis.aggregatedData.sort(this.compare);
-    
-            vis.xValue = d => d.key;
-            vis.yValue = d => d.count;
-    
-            // Set the scale input domains
-            vis.xScale.domain(vis.aggregatedData.map(vis.xValue));
-            vis.yScale.domain([0, d3.max(vis.aggregatedData, vis.yValue)]);
-    
-            vis.renderVis();
-        }
     }
 
     initVis() {
         let vis = this;
-
-        // Calculate inner chart size. Margin specifies the space around the actual chart.
         vis.width = vis.config.containerWidth - vis.config.margin.left - vis.config.margin.right - 20;
         vis.height = vis.config.containerHeight - vis.config.margin.top - vis.config.margin.bottom - vis.config.XAxisLabelHeight;
 
         // Initialize scales and axes
-        
         // Important: we flip array elements in the y output range to position the rectangles correctly
         vis.yScale = d3.scaleLinear()
             .range([vis.height, 0]) 
@@ -120,6 +97,27 @@ class Barchart {
         return 0;
     }
 
+    updateVis(){
+        let vis = this;
+        const aggregatedDataMap = d3.rollups(vis.data, v => v.length, d => d[this.aggregateAttr]);
+        vis.aggregatedData = Array.from(aggregatedDataMap, ([key, count]) => ({ key, count }));
+
+        if(this.aggregateAttr === "st_spectype"){
+            vis.aggregatedData = vis.aggregatedData.filter(obj => ["A", "F", "G", "K", "M", "Unknown"].includes(obj.key))
+        }
+
+        vis.aggregatedData.sort(this.compare);
+
+        vis.xValue = d => d.key;
+        vis.yValue = d => d.count;
+
+        // Set the scale input domains
+        vis.xScale.domain(vis.aggregatedData.map(vis.xValue));
+        vis.yScale.domain([0, d3.max(vis.aggregatedData, vis.yValue)]);
+
+        vis.renderVis();
+    }
+
     /**
      * Bind data to visual elements
      */
@@ -150,7 +148,6 @@ class Barchart {
 
             bars.on('click', function(event, d) {
                 let isActive = globalDataFilter.find(f => (f[0] === vis.aggregateAttr && f[1] === d.key))
-                console.log(isActive)
                 if (globalDataFilter.includes(isActive)) {
                     const index = globalDataFilter.indexOf(isActive);
                     if (index > -1) {

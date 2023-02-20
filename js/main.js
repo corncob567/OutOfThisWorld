@@ -42,12 +42,6 @@ d3.csv('data/exoplanets.csv')
 
 	let counts = getCounts(data);
 	console.log(counts)
-	// console.log(planetsByStarCount)
-
-  	//drawBarChart(counts[0], "barchart1", "Bar Chart 1", "Number of Stars", "# of Exoplanets");
-	//drawBarChart(counts[1], "barchart2", "Bar Chart 2", "Number of Planets", "# of Exoplanets");
-	//drawBarChart(counts[2], "barchart3", "Bar Chart 3", "Star Type", "# of Exoplanets");
-	//drawBarChart(counts[3], "barchart4", "Bar Chart 4", "Discovery Method", "# of Exoplanets", 110);
 
 	barchart1 = new Barchart({
 		parentElement: '#barchart1',
@@ -70,19 +64,19 @@ d3.csv('data/exoplanets.csv')
 	barchart4.updateVis();
 
 	drawGroupedBarChart(counts[5], "dualbarchart", "Dual Bar Chart", "Star Type", "# of Exoplanets");
+
 	// https://d3-graph-gallery.com/graph/histogram_binSize.html
 	drawHistogram(data.filter(d => d.sy_dist !== "BLANK"), "histogram", "Histogram", "Distance from Earth (pc)", "# of Exoplanets", 30)
-	// https://d3-graph-gallery.com/graph/line_basic.html
-	//drawLineChart(counts[4], "linechart", "Line Chart", "Year", "# of Exoplanets Discovered", 30)
 
-	focusContextVis = new LineChart({ parentElement: '#linechart'}, counts[4], "Line Chart", "Year", "# of Exoplanets Discovered");
-    focusContextVis.updateVis();
+	linechart = new LineChart({ parentElement: '#linechart'},
+		data, "disc_year", "Line Chart", "Year", "# of Exoplanets Discovered");
+    linechart.updateVis();
 
 	// https://d3-graph-gallery.com/graph/scatter_basic.html
 	drawScatterPlot(data.map(d => ({...d, color: "#69b3a2"})).filter(d => !isNaN(d.pl_bmasse) && !isNaN(d.pl_rade)).concat(ourSolarSystem), "scatterplot", "Scatter Plot", "Planet Radius (Earth Radius)", "Planet Mass (Earth Mass)", 30)
 	drawTable(data, ["pl_name", "st_spectype", "discoverymethod", "sy_dist", "sy_snum", "sy_pnum", "disc_year", "st_rad", "st_mass", "pl_rade", "pl_bmasse"])
 
-	filterableVisualizations = [barchart1, barchart2, barchart3, barchart4]
+	filterableVisualizations = [barchart1, barchart2, barchart3, barchart4, linechart]
 })
 .catch(error => {
     console.error('Error loading the data: ' + error);

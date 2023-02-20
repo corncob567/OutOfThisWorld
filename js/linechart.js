@@ -4,7 +4,7 @@ class LineChart {
      * @param {Object}
      * @param {Array}
      */
-    constructor(_config, _data, _title, _xLabel, _yLabel, _XAxisLabelHeight = 20) {
+    constructor(_config, _data, _aggregateAttr, _title, _xLabel, _yLabel, _XAxisLabelHeight = 20) {
         this.config = {
             parentElement: _config.parentElement,
             contextHeight: 50,
@@ -18,19 +18,13 @@ class LineChart {
             XAxisLabelHeight: _XAxisLabelHeight
         }
         this.data = _data;
-
-        // getting rid of commas in years on the y-axis
-        let parseTime = d3.timeParse("%Y");
-            this.data.forEach(function(d) {
-            d.k = parseTime(d.k);
-        });
+        this.aggregateAttr = _aggregateAttr;
+        
         this.initVis();
     }
     
     initVis() {
         let vis = this;
-        this.data.sort((a,b) => (a.k > b.k) ? 1 : ((b.k > a.k) ? -1 : 0)) // Sorts the counts in ascending order by year (k)
-
         const containerWidth = vis.config.width + vis.config.margin.left + vis.config.margin.right;
         const containerHeight = vis.config.height + vis.config.margin.top + vis.config.margin.bottom;
 
@@ -143,35 +137,55 @@ class LineChart {
             if (!selection) vis.brushed(null);
             });
     }
+
+    // Used to sort by a property value. Currently sorts in descending order by frequency.
+    compare(a, b) {
+        if (a.key < b.key){
+            return 1;
+        }
+        if (a.key > b.key){
+            return -1;
+        }
+        return 0;
+    }
   
     /**
      * Prepare the data and scales before we render it.
      */
     updateVis() {
-      let vis = this;
-      
-      vis.xValue = d => d.k;
-      vis.yValue = d => d.frequency;
-  
-      // Initialize line and area generators
-      vis.line = d3.line()
-          .x(d => vis.xScaleFocus(vis.xValue(d)))
-          .y(d => vis.yScaleFocus(vis.yValue(d)));
-  
-      vis.area = d3.area()
-          .x(d => vis.xScaleContext(vis.xValue(d)))
-          .y1(d => vis.yScaleContext(vis.yValue(d)))
-          .y0(vis.config.contextHeight);
-  
-      // Set the scale input domains
-      vis.xScaleFocus.domain(d3.extent(vis.data, vis.xValue));
-      vis.yScaleFocus.domain(d3.extent(vis.data, vis.yValue));
-      vis.xScaleContext.domain(vis.xScaleFocus.domain());
-      vis.yScaleContext.domain(vis.yScaleFocus.domain());
-  
-      vis.bisectPos = d3.bisector(vis.xValue).right;
-  
-      vis.renderVis();
+        let vis = this;
+        const aggregatedDataMap = d3.rollups(vis.data, v => v.length, d => d[this.aggregateAttr]);
+        vis.aggregatedData = Array.from(aggregatedDataMap, ([key, count]) => ({ key, count }));
+        vis.aggregatedData.sort(this.compare);
+
+        // getting rid of commas in years on the y-axis
+        let parseTime = d3.timeParse("%Y");
+        vis.aggregatedData.forEach(function(d) {
+            d.key = parseTime(d.key);
+        });
+
+        vis.xValue = d => d.key;
+        vis.yValue = d => d.count;
+
+        // Initialize line and area generators
+        vis.line = d3.line()
+            .x(d => vis.xScaleFocus(vis.xValue(d)))
+            .y(d => vis.yScaleFocus(vis.yValue(d)));
+
+        vis.area = d3.area()
+            .x(d => vis.xScaleContext(vis.xValue(d)))
+            .y1(d => vis.yScaleContext(vis.yValue(d)))
+            .y0(vis.config.contextHeight);
+
+        // Set the scale input domains
+        vis.xScaleFocus.domain(d3.extent(vis.aggregatedData, vis.xValue));
+        vis.yScaleFocus.domain([0, d3.max(vis.aggregatedData, vis.yValue)]);
+        vis.xScaleContext.domain(vis.xScaleFocus.domain());
+        vis.yScaleContext.domain(vis.yScaleFocus.domain());
+
+        vis.bisectPos = d3.bisector(vis.xValue).right;
+
+        vis.renderVis();
     }
   
     /**
@@ -181,11 +195,11 @@ class LineChart {
       let vis = this;
   
       vis.focusLinePath
-          .datum(vis.data)
+          .datum(vis.aggregatedData)
           .attr('d', vis.line);
   
       vis.contextAreaPath
-          .datum(vis.data)
+          .datum(vis.aggregatedData)
           .attr('d', vis.area);
   
       vis.tooltipTrackingArea
@@ -198,22 +212,23 @@ class LineChart {
           .on('mousemove', function(event) {
             // Get date that corresponds to current mouse x-coordinate
             const xPos = d3.pointer(event, this)[0]; // First array element is x, second is y
-            const date = vis.xScaleFocus.invert(xPos);
-  
+            let date = new Date(vis.xScaleFocus.invert(xPos))
+            date = date.getFullYear()
+
             // Find nearest data point
-            const index = vis.bisectPos(vis.data, date, 1);
-            const a = vis.data[index - 1];
-            const b = vis.data[index];
-            const d = b && (date - a.k > b.k - date) ? b : a; 
+            const index = vis.bisectPos(vis.aggregatedData, date, vis.aggregatedData.findIndex(i => i.key.getFullYear() === date) + 1);
+            const a = vis.aggregatedData[index - 1];
+            const b = vis.aggregatedData[index];
+            const d = b && (date - a.key > b.key - date) ? b : a; 
   
             // Update tooltip
             vis.tooltip.select('circle')
-                .attr('transform', `translate(${vis.xScaleFocus(d.k)},${vis.yScaleFocus(d.frequency)})`);
+                .attr('transform', `translate(${vis.xScaleFocus(d.key)},${vis.yScaleFocus(d.count)})`);
             
             vis.tooltip.select('text')
-                .attr('transform', `translate(${vis.xScaleFocus(d.k)},${(vis.yScaleFocus(d.frequency) - 15)})`)
+                .attr('transform', `translate(${vis.xScaleFocus(d.key)},${(vis.yScaleFocus(d.count) - 15)})`)
                 .style('user-select', 'none')
-                .text(Math.round(d.frequency));
+                .text(Math.round(d.count));
           });
       
       // Update the axes
