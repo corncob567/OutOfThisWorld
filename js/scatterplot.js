@@ -104,7 +104,7 @@ class Scatterplot {
     vis.yScale.domain(d3.extent(data, vis.yValue));
 
     // Add dots
-    vis.circles = vis.chart.join('g').selectAll("circle")
+    const circles = vis.chart.join('g').selectAll("circle")
       .data(vis.data.filter(d => d.filtered === false))
       .join("circle")
       .attr("cx", d => vis.xScale(vis.xValue(d)))
@@ -123,7 +123,7 @@ class Scatterplot {
       .attr("font-weight", 600)
       .text(d => d.pl_name);
 
-    vis.circles
+    circles
         .on('mouseover', (event, d) => {
           d3.select('#tooltip')
           .style('display', 'block')
@@ -140,6 +140,12 @@ class Scatterplot {
           .on('mouseleave', () => {
             d3.select('#tooltip').style('display', 'none');
           });
+
+    circles.on('click', (event, exoplanet) => {
+      if(!ourSolarSystem.includes(exoplanet)){
+        toggleSystemBrowser(exoplanet);
+      }
+    })
     
     vis.xAxisG.call(vis.xAxis)
     vis.yAxisG.call(vis.yAxis)

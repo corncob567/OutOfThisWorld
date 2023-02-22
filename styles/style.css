@@ -116,8 +116,11 @@ body {
 }
 #planetDataTable thead th {
   background-color: aliceblue;
+}
+#planetDataTable thead {
+  background-color: aliceblue;
   position: sticky;
-  top: -1px;
+  top: 0px;
 }
 #planetDataTable tbody tr:nth-child(odd) {
   background: #c6d6f2;
@@ -170,4 +173,42 @@ body {
 #tooltip ul {
   margin: 5px 0 0 0;
   padding-left: 20px;
+}
+
+/* System Browser */
+#systemBrowser {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: none;
+  background: #fff;
+  box-shadow: 3px 3px 3px 0px rgba(92, 92, 92, 0.5);
+  border: 1px solid #ddd;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 8px;
+  width: 1000px;
+  height: 620px;
+  color: #333;
+}
+#systemBrowser .headerBar {
+  background-color: #ddd;
+}
+#systemBrowser .systemName {
+  color: #000;
+  font-size: 22px;
+  font-weight: 600;
+  text-align: center;
+}
+#systemBrowser .selectedPlanet {
+  font-size: 18px;
+  text-align: center;
+}
+#systemBrowser .discoveryFacility {
+  font-size: 18px;
+  text-align: center;
+}
+#systemBrowser button {
+  float: right;
 }/*# sourceMappingURL=style.css.map */

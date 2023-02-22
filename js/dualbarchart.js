@@ -144,23 +144,20 @@ class DualBarchart {
         if(oninit){
             vis.groupedData.sort(this.compare);
         }
-        console.log(vis.groupedData)
 
         vis.xValue = d => d.key;
         vis.yValue1 = d => d.uninhabitable;
         vis.yValue2 = d => d.habitable;
 
-        // Set the scale input domains
-        vis.xScale.domain(vis.groupedData.map(vis.xValue));
-        vis.yScale.domain([0, 650]);
+        if(oninit){
+            vis.xScale.domain(vis.groupedData.map(vis.xValue));
+            vis.yScale.domain([0, 650]);
+        }
 
-        vis.renderVis();
+        vis.renderVis(oninit);
     }
 
-    /**
-     * Bind data to visual elements
-     */
-    renderVis() {
+    renderVis(oninit) {
         let vis = this;
 
         let graph1 = vis.svg.selectAll(".habitableBar")
@@ -172,11 +169,9 @@ class DualBarchart {
             .attr('class', 'bar')
             .attr('class', 'uninhabitableBar')
             .attr("x", d => vis.xScale(vis.xValue(d)))
-            .attr("width", vis.xScale.bandwidth() / 2)
-            .attr('y', d => vis.yScale(vis.yValue1(d)))
-            // .attr('y', vis.yScale(0))
-            // .attr('height', 0)
-            .attr('height', d => vis.height - vis.yScale(vis.yValue1(d)))
+            .attr("width", 15)
+            .attr('y', vis.yScale(0))
+            .attr('height', 0)
             .attr("transform", "translate(" + 72 + "," + vis.config.margin.top + ")")
             .attr("fill", "#c09c9f");
 
@@ -184,20 +179,18 @@ class DualBarchart {
             .attr('class', 'bar')
             .attr('class', 'habitableBar')
             .attr("x", d => vis.xScale(vis.xValue(d)))
-            .attr("width", vis.xScale.bandwidth() / 2)
-            .attr('y', d => vis.yScale(vis.yValue2(d)))
-            // .attr('y', vis.yScale(0))
-            // .attr('height', 0)
-            .attr('height', d => vis.height - vis.yScale(vis.yValue2(d)))
+            .attr("width", 15)
+            .attr('y', vis.yScale(0))
+            .attr('height', 0)
             .attr("transform", "translate(" + 87 + "," + vis.config.margin.top + ")")
             .attr("fill", "#395943");
 
-        // firstBarGroup.transition().duration(1000)
-        //     .attr('height', d => vis.height - vis.yScale(vis.yValue1(d)))
-        //     .attr('y', d => vis.yScale(vis.yValue1(d)));
-        // secondBarGroup.transition().duration(1000)
-        //     .attr('height', d => vis.height - vis.yScale(vis.yValue2(d)))
-        //     .attr('y', d => vis.yScale(vis.yValue2(d)));
+        firstBarGroup.transition().duration(1000)
+            .attr('height', d => vis.height - vis.yScale(vis.yValue1(d)))
+            .attr('y', d => vis.yScale(vis.yValue1(d)));
+        secondBarGroup.transition().duration(1000)
+            .attr('height', d => vis.height - vis.yScale(vis.yValue2(d)))
+            .attr('y', d => vis.yScale(vis.yValue2(d)));
 
         vis.svg.selectAll(".habitableBar").on('mouseover', (event, d) => {
             d3.select('#tooltip')
@@ -267,10 +260,12 @@ class DualBarchart {
             });
 
         // Update axes
-        vis.xAxisG.call(vis.xAxis)
-            .selectAll("text")
-            .attr("transform", "translate(-10,0)rotate(-45)")
-            .style("text-anchor", "end");
+        if(oninit){
+            vis.xAxisG.call(vis.xAxis)
+                .selectAll("text")
+                .attr("transform", "translate(-10,0)rotate(-45)")
+                .style("text-anchor", "end");
+        }
         vis.yAxisG.call(vis.yAxis);
     }
 

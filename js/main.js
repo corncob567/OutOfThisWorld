@@ -64,10 +64,11 @@ d3.csv('data/exoplanets.csv')
 	scatterplot = new Scatterplot({ parentElement: '#scatterplot'},
 		data, "pl_rade", "pl_bmasse","Scatter Plot", "Planet Radius (Earth Radius)", "Planet Mass (Earth Mass)");
 	scatterplot.updateVis();
-	
-	drawTable(data, ["pl_name", "st_spectype", "discoverymethod", "sy_dist", "sy_snum", "sy_pnum", "disc_year", "st_rad", "st_mass", "pl_rade", "pl_bmasse"])
 
-	filterableVisualizations = [barchart1, barchart2, barchart3, barchart4, dualBarchart, linechart, scatterplot]
+	table = new DataTable('#planetDataTable', data, ["pl_name", "st_spectype", "discoverymethod", "sy_dist", "sy_snum", "sy_pnum", "disc_year", "st_rad", "st_mass", "pl_rade", "pl_bmasse"]);
+	
+
+	filterableVisualizations = [barchart1, barchart2, barchart3, barchart4, dualBarchart, linechart, scatterplot, table]
 })
 .catch(error => {
     console.error('Error loading the data: ' + error);
@@ -179,38 +180,6 @@ function drawHistogram(data, svgId, title, xLabel, yLabel, XAxisLabelHeight = 20
    .attr("transform", "translate(" + (width / 2) + " ," + (height + 15) + ")")
    .style("text-anchor", "middle")
    .text(xLabel);
-}
-
-function drawTable(data, columns) {
-	let table = d3.select('#planetDataTable').append('table')
-	let thead = table.append('thead')
-	let	tbody = table.append('tbody');
-
-	// append the header row
-	thead.append('tr')
-	  .selectAll('th')
-	  .data(columns).enter()
-	  .append('th')
-	  .text(function (column) { return column; });
-
-	// create a row for each object in the data
-	let rows = tbody.selectAll('tr')
-	  .data(data)
-	  .enter()
-	  .append('tr');
-
-	// create a cell in each row for each column
-	let cells = rows.selectAll('td')
-	  .data(function (row) {
-	    return columns.map(function (column) {
-	      return {column: column, value: row[column]};
-	    });
-	  })
-	  .enter()
-	  .append('td')
-	    .text(function (d) { return d.value; });
-
-  return table;
 }
 
 function isInHabitableZone(specType, plOrbsMax){
