@@ -27,7 +27,12 @@ class DataTable {
         let rows = tbody.selectAll('tr')
             .data(vis.data)
             .enter()
-            .append('tr');
+            .append('tr').on('click', (event, exoplanet) => {
+                console.log(exoplanet);
+                if(!ourSolarSystem.includes(exoplanet)){
+                  toggleSystemBrowser(exoplanet);
+                }
+            });
 
         // create a cell in each row for each column
         let cells = rows.selectAll('td')
@@ -66,7 +71,13 @@ class DataTable {
         let rows = table.selectAll('tbody').selectAll('tr')
             .attr("class", "datarow")
             .data(vis.data)
-            .join('tr');
+            .join('tr')
+            .on('click', (event, exoplanet) => {
+                console.log(exoplanet);
+                if(!ourSolarSystem.includes(exoplanet)){
+                  toggleSystemBrowser(exoplanet);
+                }
+              });
 
         // create a cell in each row for each column
         let cells = rows.selectAll('td')
