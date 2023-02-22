@@ -38,10 +38,11 @@ class Barchart {
 
         vis.yAxis = d3.axisLeft(vis.yScale)
             .ticks(6)
-            .tickSizeOuter(0)
-
+            .tickSizeOuter(0);
+        
         // Define size of SVG drawing area
         vis.svg = d3.select(vis.config.parentElement)
+            .attr('class', 'barchart')
             .attr('width', vis.config.containerWidth)
             .attr('height', vis.config.containerHeight);
 
@@ -99,7 +100,7 @@ class Barchart {
 
     updateVis(){
         let vis = this;
-        const aggregatedDataMap = d3.rollups(vis.data, v => v.length, d => d[this.aggregateAttr]);
+        const aggregatedDataMap = d3.rollups(vis.data, v => d3.sum(v, d => !d.filtered), d => d[this.aggregateAttr]);
         vis.aggregatedData = Array.from(aggregatedDataMap, ([key, count]) => ({ key, count }));
 
         if(this.aggregateAttr === "st_spectype"){
@@ -113,14 +114,11 @@ class Barchart {
 
         // Set the scale input domains
         vis.xScale.domain(vis.aggregatedData.map(vis.xValue));
-        vis.yScale.domain([0, d3.max(vis.aggregatedData, vis.yValue)]);
+        vis.yScale.domain([0, d3.max(vis.aggregatedData, vis.yValue) + 1]);
 
         vis.renderVis();
     }
 
-    /**
-     * Bind data to visual elements
-     */
     renderVis() {
         let vis = this;
 
@@ -135,7 +133,7 @@ class Barchart {
             .attr('y', vis.yScale(0))
             .attr('height', 0)
             .attr('class', function(d) {
-                if(globalDataFilter.find(f => (f[0] === vis.aggregateAttr && f[1] === d.key))){
+                if(globalDataFilter.find(f => (f[0] === vis.aggregateAttr && f[1].includes(d.key)))){
                     return 'bar active' // adding active class to newly rendered bars that were already a filter
                 }else{
                     return 'bar'
@@ -147,17 +145,7 @@ class Barchart {
             .attr('y', d => vis.yScale(vis.yValue(d)));
 
             bars.on('click', function(event, d) {
-                let isActive = globalDataFilter.find(f => (f[0] === vis.aggregateAttr && f[1] === d.key))
-                if (globalDataFilter.includes(isActive)) {
-                    const index = globalDataFilter.indexOf(isActive);
-                    if (index > -1) {
-                        globalDataFilter.splice(index, 1); // only removes specific filter at index
-                    }
-                } else {
-                    globalDataFilter.push([vis.aggregateAttr, d.key]); // Append new filter
-                }
-                filterData(); // Call global function to update visuals
-                d3.select(this).classed('active', !isActive);
+                vis.toggleFilter(d.key);
             });
 
         bars.on('mouseover', (event, d) => {
@@ -174,11 +162,47 @@ class Barchart {
             d3.select('#tooltip').style('display', 'none');
         });
 
-        // Update axes
         vis.xAxisG.call(vis.xAxis)
             .selectAll("text")
             .attr("transform", "translate(-10,0)rotate(-45)")
             .style("text-anchor", "end");
         vis.yAxisG.call(vis.yAxis);
+
+        vis.chart.select('.x-axis')
+            .selectAll('.tick text')
+            .attr('class', function(d) {
+                if(globalDataFilter.find(f => (f[0] === vis.aggregateAttr && f[1].includes(d)))){
+                    return 'active' // adding active class to newly rendered x-axis labels that were already a filter
+                }else{
+                    return ''
+                }
+            })
+            .on('click', function(event, d) {
+                let xLabel = event.srcElement.__data__
+                vis.toggleFilter(xLabel)
+            });
+    }
+
+    toggleFilter(filterProperty){
+        let attrFilter = globalDataFilter.find(f => (f[0] === this.aggregateAttr))
+        const attrIndex = globalDataFilter.indexOf(attrFilter);
+        if (attrIndex === -1){ // Attribute has never been filtered on
+            globalDataFilter.push([this.aggregateAttr, [filterProperty]]); // Append new filter
+        }else{ // Attribute is either being removed entirely or needs to be OR'd
+            let specificFilter = globalDataFilter[attrIndex]
+            let specificFilterProperty = specificFilter[1].find(s => (s === filterProperty))
+            const specificFilterIndex = specificFilter[1].indexOf(specificFilterProperty);
+            // Specific filter property was found, so we remove it
+            if (specificFilterIndex > -1) {
+                if (specificFilter[1].length === 1){
+                    globalDataFilter.splice(attrIndex, 1); // remove entire attribute filter since no specific attributes are selected for it
+                }else{
+                    specificFilter[1].splice(specificFilterIndex, 1); // only removes specific filter from that attribute
+                }
+            }else{ // Attribute already has at least 1 filter on it, so we add the new filter to that attribute's array
+                specificFilter[1].push(filterProperty); // Append new filter
+            }
+        }
+        filterData(); // Call global function to update visuals
     }
 }

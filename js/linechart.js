@@ -7,9 +7,9 @@ class LineChart {
     constructor(_config, _data, _aggregateAttr, _title, _xLabel, _yLabel, _XAxisLabelHeight = 20) {
         this.config = {
             parentElement: _config.parentElement,
-            contextHeight: 50,
+            contextHeight: 30,
             margin: {top: 30, right: 10, bottom: 100, left: 75},
-            contextMargin: {top: 340, right: 10, bottom: 20, left: 45},
+            contextMargin: {top: 355, right: 10, bottom: 20, left: 45},
             width:  545,
             height: 282,
             title: _title,
@@ -138,7 +138,7 @@ class LineChart {
             });
     }
 
-    // Used to sort by a property value. Currently sorts in descending order by frequency.
+    // Used to sort by a property value.
     compare(a, b) {
         if (a.key < b.key){
             return 1;
@@ -149,12 +149,9 @@ class LineChart {
         return 0;
     }
   
-    /**
-     * Prepare the data and scales before we render it.
-     */
     updateVis() {
         let vis = this;
-        const aggregatedDataMap = d3.rollups(vis.data, v => v.length, d => d[this.aggregateAttr]);
+        const aggregatedDataMap = d3.rollups(vis.data, v => d3.sum(v, d => !d.filtered), d => d[this.aggregateAttr]);
         vis.aggregatedData = Array.from(aggregatedDataMap, ([key, count]) => ({ key, count }));
         vis.aggregatedData.sort(this.compare);
 
@@ -237,7 +234,7 @@ class LineChart {
       vis.xAxisContextG.call(vis.xAxisContext);
   
       // Update the brush and define a default position
-      const defaultBrushSelection = [328, 445];
+      const defaultBrushSelection = [0, 545];
       vis.brushG
           .call(vis.brush)
           .call(vis.brush.move, defaultBrushSelection);

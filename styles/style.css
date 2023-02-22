@@ -4,10 +4,6 @@ body {
   margin-top: 0px;
 }
 
-.bar {
-  fill: rgb(105, 179, 162);
-}
-
 #pageInfo {
   flex-basis: 100%;
   margin-bottom: 10px;
@@ -46,6 +42,13 @@ body {
 #dualbarchart {
   background-color: rgb(249, 212, 251);
 }
+#dualbarchart circle {
+  cursor: pointer;
+}
+#dualbarchart circle.active {
+  stroke: #000000;
+  stroke-width: 3px;
+}
 
 .histHolder {
   margin-bottom: -53px;
@@ -79,6 +82,24 @@ body {
           user-select: none;
   stroke: #fff;
   paint-order: stroke;
+}
+#scatterplot circle {
+  cursor: pointer;
+}
+#scatterplot circle:hover {
+  stroke: #000;
+}
+
+.barchart .bar {
+  fill: rgb(105, 179, 162);
+  cursor: pointer;
+}
+.barchart .x-axis .tick text.active {
+  stroke: #676565;
+  paint-order: stroke;
+}
+.barchart .x-axis .tick text {
+  cursor: pointer;
 }
 
 #planetDataTable {

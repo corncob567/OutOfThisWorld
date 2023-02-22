@@ -2,18 +2,6 @@ let data;
 let globalDataFilter = [];
 let filterableVisualizations = [];
 
-// https://en.wikipedia.org/wiki/List_of_Solar_System_objects_by_size
-let ourSolarSystem = [
-	{pl_name: "Mercury", pl_rade: 0.3829, pl_bmasse: 0.0553, color: "#ff0000", labelYOffset: 0, labelXOffset: 0},
-	{pl_name: "Venus", pl_rade: 0.9499, pl_bmasse: 0.815, color: "#ff0000", labelYOffset: 0, labelXOffset: -50},
-	{pl_name: "Earth", pl_rade: 1, pl_bmasse: 1, color: "#ff0000", labelYOffset: -10, labelXOffset: 0},
-	{pl_name: "Mars", pl_rade: 0.5320, pl_bmasse: 0.107, color: "#ff0000", labelYOffset: 0, labelXOffset: 0},
-	{pl_name: "Jupiter", pl_rade: 10.97, pl_bmasse: 317.83, color: "#ff0000", labelYOffset: 0, labelXOffset: 0},
-	{pl_name: "Saturn", pl_rade: 9.140, pl_bmasse: 95.162, color: "#ff0000", labelYOffset: 0, labelXOffset: 0},
-	{pl_name: "Uranus", pl_rade: 3.981, pl_bmasse: 14.536, color: "#ff0000", labelYOffset: 0, labelXOffset: 0},
-	{pl_name: "Neptune", pl_rade: 3.865, pl_bmasse: 17.147, color: "#ff0000", labelYOffset: -10, labelXOffset: -70},
-]
-
 d3.csv('data/exoplanets.csv')
   .then(_data => {
 	data = _data;
@@ -38,10 +26,8 @@ d3.csv('data/exoplanets.csv')
 		}
 
       	d.within_habitable_zone = isInHabitableZone(d.st_spectype, d.pl_orbsmax);
+		d.filtered = false;
   	});
-
-	let counts = getCounts(data);
-	console.log(counts)
 
 	barchart1 = new Barchart({
 		parentElement: '#barchart1',
@@ -63,7 +49,10 @@ d3.csv('data/exoplanets.csv')
 		}, data, "discoverymethod", "Bar Chart 4", "Discovery Method", "# of Exoplanets", 110);
 	barchart4.updateVis();
 
-	drawGroupedBarChart(counts[5], "dualbarchart", "Dual Bar Chart", "Star Type", "# of Exoplanets");
+	dualBarchart = new DualBarchart({
+		parentElement: '#dualbarchart',
+		}, data, "st_spectype", "within_habitable_zone", "Dual Bar Chart", "Star Type", "# of Exoplanets");
+	dualBarchart.updateVis(oninit=true);
 
 	// https://d3-graph-gallery.com/graph/histogram_binSize.html
 	drawHistogram(data.filter(d => d.sy_dist !== "BLANK"), "histogram", "Histogram", "Distance from Earth (pc)", "# of Exoplanets", 30)
@@ -71,260 +60,18 @@ d3.csv('data/exoplanets.csv')
 	linechart = new LineChart({ parentElement: '#linechart'},
 		data, "disc_year", "Line Chart", "Year", "# of Exoplanets Discovered");
     linechart.updateVis();
-
-	// https://d3-graph-gallery.com/graph/scatter_basic.html
-	drawScatterPlot(data.map(d => ({...d, color: "#69b3a2"})).filter(d => !isNaN(d.pl_bmasse) && !isNaN(d.pl_rade)).concat(ourSolarSystem), "scatterplot", "Scatter Plot", "Planet Radius (Earth Radius)", "Planet Mass (Earth Mass)", 30)
+	
+	scatterplot = new Scatterplot({ parentElement: '#scatterplot'},
+		data, "pl_rade", "pl_bmasse","Scatter Plot", "Planet Radius (Earth Radius)", "Planet Mass (Earth Mass)");
+	scatterplot.updateVis();
+	
 	drawTable(data, ["pl_name", "st_spectype", "discoverymethod", "sy_dist", "sy_snum", "sy_pnum", "disc_year", "st_rad", "st_mass", "pl_rade", "pl_bmasse"])
 
-	filterableVisualizations = [barchart1, barchart2, barchart3, barchart4, linechart]
+	filterableVisualizations = [barchart1, barchart2, barchart3, barchart4, dualBarchart, linechart, scatterplot]
 })
 .catch(error => {
     console.error('Error loading the data: ' + error);
 });
-
-// https://d3-graph-gallery.com/graph/barplot_basic.html
-function drawBarChart(counts, svgId, title, xLabel, yLabel, XAxisLabelHeight = 20){
-	const margin = {top: 30, right: 30, bottom: 20, left: 50};
-
-	const width = 300 - margin.left - margin.right;
-	const height = 412 - margin.top - margin.bottom;
-	const titleheight = 30
-	const YAxisLabelWidth = 20
-
-	const svg = d3.select('#' + svgId).append('svg')
-	    .attr('width', width + margin.left + margin.right)
-	    .attr('height', height + margin.top + margin.bottom)
-	    .append('g')
-	    .attr('transform', `translate(${margin.left}, ${margin.top})`)
-
-	// X axis
-	let x = d3.scaleBand()
-	.range([ YAxisLabelWidth, width ])
-	.domain(counts.map(c => c.k))
-	.padding(0.2);
-	svg.append("g")
-	.attr("transform", "translate(0," + (height - XAxisLabelHeight) + ")")
-	.call(d3.axisBottom(x))
-	.selectAll("text")
-	.attr("transform", "translate(-10,0)rotate(-45)")
-	.style("text-anchor", "end");
-
-	let maxFreq = Math.max(...counts.map(c => c.frequency))
-
-	// Add Y axis
-	let y = d3.scaleLinear()
-	.domain([0, maxFreq])
-	.range([ height - XAxisLabelHeight, titleheight]);
-	svg.append("g")
-	.call(d3.axisLeft(y))
-	.attr("transform", "translate(" + YAxisLabelWidth + ", 0)");
-
-	// Bars
-	bars = svg.selectAll("rect")
-    .data(counts)
-	.enter()
-    .append("rect")
-	.attr('class', 'bar')
-    .attr("x", function(d) { return x(d.k);})
-    .attr("width", x.bandwidth())
-    .attr("y", function(d) { return y(d.frequency);})
-    .attr("height", function(d) {
-		return height- XAxisLabelHeight - y(d.frequency);
-    })
-	.attr("fill", "#69b3a2");
-
-	bars.on('mouseover', (event, d) => {
-		d3.select('#tooltip')
-		.style('display', 'block')
-		.style('left', (event.pageX + 15) + 'px')   
-		.style('top', (event.pageY + 15) + 'px')
-		.html(`
-			<div class="tooltip-title">${xLabel}: ${d.k}</div>
-			<div class="tooltip-title">${yLabel}: ${d.frequency}</div>
-		`);
-	})
-	.on('mouseleave', () => {
-		d3.select('#tooltip').style('display', 'none');
-	});
-
-	// Title
-	svg.append("text")
-   .attr("x", width / 2)
-   .attr("y", 10)
-   .attr("text-anchor", "middle")
-   .style("font-size", "24px")
-   .text(title);
-
-   // Y-Axis Label
-   svg.append("text")
-   .attr("transform", "rotate(-90)")
-   .attr("x", -(height / 2))
-   .attr("y", -30)
-   .style("text-anchor", "middle")
-   .text(yLabel);
-
-   // X-Axis Label
-   svg.append("text")
-   .attr("transform", "translate(" + (width / 2) + " ," + (height + 15) + ")")
-   .style("text-anchor", "middle")
-   .text(xLabel);
-}
-
-function drawGroupedBarChart(data, svgId, title, xLabel, yLabel, XAxisLabelHeight = 20){
-	const margin = {top: 30, right: 30, bottom: 20, left: 50};
-
-	const width = 300 - margin.left - margin.right;
-	const height = 412 - margin.top - margin.bottom;
-	const titleheight = 30
-	const YAxisLabelWidth = 20
-
-	const svg = d3.select('#' + svgId).append('svg')
-	    .attr('width', width + margin.left + margin.right)
-	    .attr('height', height + margin.top + margin.bottom)
-	    .append('g')
-	    .attr('transform', `translate(${margin.left}, ${margin.top})`);
-	
-	let legend = svg.append("g")
-	.attr("class", "legend")
-	.attr('transform', 'translate(0,-10)')
-
-	let colors = [["Habitable", "#395943"],
-				  ["Uninhabitable", "#c09c9f"]];
-
-	let legendRect = legend.selectAll('circle').data(colors);
-	legendRect.enter()
-		.append("circle")
-		.attr("cx", width - 55)
-		.attr("r", 6)
-		.attr("width", 10)
-		.attr("height", 10)
-		.attr("cy", function(d, i) {
-			return i * 20 + 3;
-		})
-		.style("fill", function(d) {
-			return d[1];
-		});
-	
-	let legendText = legend.selectAll('text').data(colors);
-	legendText.enter()
-		.append("text")
-		.attr("font-size", 12)
-		.attr("x", width - 45)
-		.attr("y", function(d, i) {
-			return i * 20 + 7;
-		})
-		.text(function(d) {
-			return d[0];
-		});
-
-	let groups = data.map(d => d.specType);
-  
-	// Add X axis
-	let x = d3.scaleBand()
-	  .domain(groups)
-	  .range([0, width])
-	  .padding(0.2)
-	  svg.append("g")
-	  .attr("transform", "translate(20," + (height - XAxisLabelHeight) + ")")
-	  .call(d3.axisBottom(x).tickSize(0))
-	  .selectAll("text")
-	  .attr("transform", "translate(0,0)rotate(-45)")
-	  .style("text-anchor", "end");
-
-	let maxFreq = Math.max(...data.map(d => d.inhabitable))
-
-	// Add Y axis
-	let y = d3.scaleLinear()
-	  .domain([0, maxFreq])
-	  .range([ height - XAxisLabelHeight, titleheight]);
-	  svg.append("g")
-	  .call(d3.axisLeft(y))
-	  .attr("transform", "translate(" + YAxisLabelWidth + ", 0)");
-  
-	let multigraph = svg.selectAll("rect")
-    					.data(data).enter() 
-
-	// Bars
-    multigraph.append("rect")
-	.attr('class', 'bar')
-	.attr('class', 'uninhabitableBar')
-    .attr("x", function(d) { return x(d.specType);})
-    .attr("width", x.bandwidth() / 2)
-    .attr("y", function(d) { return y(d.inhabitable);})
-    .attr("height", function(d) {
-		return height- XAxisLabelHeight - y(d.inhabitable);
-    })
-	.attr("transform", "translate(" + 20 + "," + 0 + ")")
-	.attr("fill", "#c09c9f");
-
-	multigraph.append("rect")
-	.attr('class', 'bar')
-	.attr('class', 'habitableBar')
-    .attr("x", function(d) { return x(d.specType);})
-    .attr("width", x.bandwidth() / 2)
-    .attr("y", function(d) { return y(d.habitable);})
-    .attr("height", function(d) {
-		return height- XAxisLabelHeight - y(d.habitable);
-    })
-	.attr("transform", "translate(" + 37 + "," + 0 + ")")
-	.attr("fill", "#395943");
-
-	svg.selectAll(".habitableBar").on('mouseover', (event, d) => {
-		d3.select('#tooltip')
-		.style('display', 'block')
-		.style('left', (event.pageX + 15) + 'px')   
-		.style('top', (event.pageY + 15) + 'px')
-		.html(`
-			<div class="tooltip-title">Habitable</div>
-			<ul>
-			<li>Star Type: ${d.specType}</li>
-			<li># of Exoplanets: ${d.habitable}</li>
-			</ul>
-		`);
-	})
-	.on('mouseleave', () => {
-		d3.select('#tooltip').style('display', 'none');
-	});
-
-	svg.selectAll(".uninhabitableBar").on('mouseover', (event, d) => {
-		d3.select('#tooltip')
-		.style('display', 'block')
-		.style('left', (event.pageX + 15) + 'px')   
-		.style('top', (event.pageY + 15) + 'px')
-		.html(`
-			<div class="tooltip-title">Uninhabitable</div>
-			<ul>
-			<li>Star Type: ${d.specType}</li>
-			<li># of Exoplanets: ${d.inhabitable}</li>
-			</ul>
-		`);
-	})
-	.on('mouseleave', () => {
-		d3.select('#tooltip').style('display', 'none');
-	});
-
-	// Title
-	svg.append("text")
-   .attr("x", width / 2 - 40)
-   .attr("y", 10)
-   .attr("text-anchor", "middle")
-   .style("font-size", "24px")
-   .text(title);
-
-   // Y-Axis Label
-   svg.append("text")
-   .attr("transform", "rotate(-90)")
-   .attr("x", -(height / 2))
-   .attr("y", -30)
-   .style("text-anchor", "middle")
-   .text(yLabel);
-
-   // X-Axis Label
-   svg.append("text")
-   .attr("transform", "translate(" + (width / 2) + " ," + (height + 15) + ")")
-   .style("text-anchor", "middle")
-   .text(xLabel);
-}
 
 function drawHistogram(data, svgId, title, xLabel, yLabel, XAxisLabelHeight = 20){
 	const margin = {top: 30, right: 30, bottom: 20, left: 50};
@@ -434,103 +181,6 @@ function drawHistogram(data, svgId, title, xLabel, yLabel, XAxisLabelHeight = 20
    .text(xLabel);
 }
 
-function drawScatterPlot(data, svgId, title, xLabel, yLabel, XAxisLabelHeight = 20){
-	const margin = {top: 30, right: 30, bottom: 20, left: 50};
-
-	const width = 600 - margin.left - margin.right;
-	const height = 412 - margin.top - margin.bottom;
-	const titleheight = 30
-	const YAxisLabelWidth = 20
-
-	const svg = d3.select('#' + svgId).append('svg')
-	    .attr('width', width + margin.left + margin.right)
-	    .attr('height', height + margin.top + margin.bottom)
-	    .append('g')
-	    .attr('transform', `translate(${margin.left}, ${margin.top})`);
-
-	// X axis
-	let x = d3.scaleLog()
-	.range([ YAxisLabelWidth, width ])
-	.domain(d3.extent(data, function(d) { return d.pl_rade; }));
-	svg.append("g")
-	.attr("transform", "translate(0," + (height - XAxisLabelHeight) + ")")
-	.call(d3.axisBottom(x))
-	.selectAll("text")
-	.attr("transform", "translate(-10,0)rotate(-45)")
-	.style("text-anchor", "end");
-
-	// Add Y axis
-	let y = d3.scaleLog()
-	.domain(d3.extent(data, function(d) { return d.pl_bmasse; }))
-	.range([ height - XAxisLabelHeight, titleheight]);
-	svg.append("g")
-	.call(d3.axisLeft(y))
-	.attr("transform", "translate(" + YAxisLabelWidth + ", 0)");
-
-	// Add dots
-	let scatterplotcircles = svg.append('g')
-	.selectAll("dot")
-	.data(data)
-	.join("circle")
-	.attr("cx", function (d) { return x(d.pl_rade); } )
-	.attr("cy", function (d) { return y(d.pl_bmasse); } )
-	.attr("r", 4)
-	.style("fill", function (d) { return d.color; })
-
-	// Title
-	svg.append("text")
-	.attr("x", width / 2)
-	.attr("y", 10)
-	.attr("text-anchor", "middle")
-	.style("font-size", "24px")
-	.text(title);
-
-	// Y-Axis Label
-	svg.append("text")
-	.attr("transform", "rotate(-90)")
-	.attr("x", -(height / 2))
-	.attr("y", -30)
-	.style("text-anchor", "middle")
-	.text(yLabel);
-
-	// X-Axis Label
-	svg.append("text")
-	.attr("transform", "translate(" + (width / 2) + " ," + (height + 15) + ")")
-	.style("text-anchor", "middle")
-	.text(xLabel);
-
-	// Labels for planets in our solar system
-	svg.append('g')
-	.selectAll("text")
-	.data(data.filter(d => d.color === "#ff0000"))
-	.enter()
-	.append("text")
-	.attr("class", "solarSystemLabel")
-	.attr("x", function (d) { return x(d.pl_rade) + 5 + d.labelXOffset; } )
-	.attr("y", function (d) { return y(d.pl_bmasse) + 10 + d.labelYOffset; } )
-	.attr("font-weight", 600)
-	.text(function (d) { return d.pl_name; });
-
-	// Tooltip event listeners
-    scatterplotcircles
-        .on('mouseover', (event, d) => {
-			d3.select('#tooltip')
-			.style('display', 'block')
-			.style('left', (event.pageX + 15) + 'px')   
-			.style('top', (event.pageY + 15) + 'px')
-			.html(`
-				<div class="tooltip-title">${d.pl_name}</div>
-				<ul>
-				<li>Earth Radius: ${d.pl_rade}</li>
-				<li>Earth Mass: ${d.pl_bmasse}</li>
-				</ul>
-			`);
-        })
-        .on('mouseleave', () => {
-			d3.select('#tooltip').style('display', 'none');
-        });
-}
-
 function drawTable(data, columns) {
 	let table = d3.select('#planetDataTable').append('table')
 	let thead = table.append('thead')
@@ -586,74 +236,6 @@ function isInHabitableZone(specType, plOrbsMax){
 	  }
 }
 
-// Used to sort by a property value. Currently sorts in descending order by frequency.
-function compare(a, b) {
-	if (a.frequency < b.frequency){
-		return 1;
-	}
-	if (a.frequency > b.frequency){
-		return -1;
-	}
-	return 0;
-}
-  
-function convertDictToArray(dict){
-	let arr = [];
-	for(const [key, value] of Object.entries(dict)) {
-		const obj = {
-			k: key,
-			frequency: value
-		  };
-		  arr.push(obj);
-	}
-	arr.sort(compare);
-	return arr;
-}
-
-function getCounts(data) {
-	let starCounts = {};
-	let planetCounts = {};
-	let typeCounts = {};
-	let discMethod = {};
-	let typeHabitableCounts = {};
-	let typeInHabitableCounts = {};
-	let discoveriesByYearCounts = {};
-
-	let relevantSpecTypes = ['A', 'F', 'G', 'K', 'M']
-
-	data.forEach(d => {
-		starCounts[d.sy_snum] = (starCounts[d.sy_snum] || 0) + 1;
-		planetCounts[d.sy_pnum] = (planetCounts[d.sy_pnum] || 0) + 1;
-		if (d.st_spectype === "A" || d.st_spectype === "F"|| d.st_spectype === "G" || d.st_spectype === "K" || d.st_spectype === "M" || d.st_spectype === "Unknown") {
-			typeCounts[d.st_spectype] = (typeCounts[d.st_spectype] || 0) + 1;
-			if(d.st_spectype !== "Unknown"){
-				if (d.within_habitable_zone === true){
-					typeHabitableCounts[d.st_spectype] = (typeHabitableCounts[d.st_spectype] || 0) + 1;
-				}else{
-					typeInHabitableCounts[d.st_spectype] = (typeInHabitableCounts[d.st_spectype] || 0) + 1;
-				}
-			}
-		}
-		discMethod[d.discoverymethod] = (discMethod[d.discoverymethod] || 0) + 1;
-		discoveriesByYearCounts[d.disc_year] = (discoveriesByYearCounts[d.disc_year] || 0) + 1;
-	});	
-	
-	let counts = [starCounts, planetCounts, typeCounts, discMethod, discoveriesByYearCounts];
-	let countArrays = [];
-	counts.forEach(c => {
-		countArrays.push(convertDictToArray(c));
-	});
-	
-	let combinedHabitableCounts = []
-	relevantSpecTypes.forEach(type => {
-		let object = {specType: type, habitable: typeHabitableCounts[type], inhabitable: typeInHabitableCounts[type]}
-		combinedHabitableCounts.push(object);
-	});
-	countArrays.push(combinedHabitableCounts)
-
-	return countArrays;
-};
-
 function filterData() {
 	if (globalDataFilter.length == 0) {
 		filterableVisualizations.forEach(v => {
@@ -661,14 +243,14 @@ function filterData() {
 		})
 	} else {
 		filterableVisualizations.forEach(v => {
-			v.data = data.filter(d => {
+			v.data = data.map(d => {
 				for (i in globalDataFilter){
-					let filter = globalDataFilter[i]
-					if(d[filter[0]] !== filter[1]){
-						return false
+					let attrFilter = globalDataFilter[i]
+					if(!attrFilter[1].includes(d[attrFilter[0]])){
+						return {...d, filtered: true}
 					}
 				}
-				return true
+				return {...d, filtered: false}
 			})
 		})
 	}
