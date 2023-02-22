@@ -214,7 +214,10 @@ class LineChart {
 
             // Find nearest data point
             const index = vis.bisectPos(vis.aggregatedData, date, vis.aggregatedData.findIndex(i => i.key.getFullYear() === date) + 1);
-            const a = vis.aggregatedData[index - 1];
+            let a = vis.aggregatedData[index - 1]
+            if (a === undefined){
+                a = vis.aggregatedData[index];
+            }
             const b = vis.aggregatedData[index];
             const d = b && (date - a.key > b.key - date) ? b : a; 
   

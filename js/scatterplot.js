@@ -91,12 +91,28 @@ class Scatterplot {
       .style("text-anchor", "middle")
       .text(vis.config.xLabel);
 
+    vis.brushG = vis.chart.append('g')
+      .attr('class', 'brush x-brush')
+      .attr('transform', `translate(0,0)`);
+
+    // Initialize brush component
+    vis.brush = d3.brush()
+      .extent([[0, 0], [vis.width, vis.height - 2]])
+      .on('brush', function({selection}) {
+        console.log(selection)
+        if (selection) vis.brushed(selection);
+      })
+      .on('end', function({selection}) {
+        if (!selection) vis.brushed(null);
+      });
+
     vis.xValue = d => d[vis.xAttr];
     vis.yValue = d => d[vis.yAttr];
   }
 
   updateVis() {
     let vis = this;
+
     vis.data = vis.data.map(d => ({...d, color: "#69b3a2"})).filter(d => !isNaN(d.pl_bmasse) && !isNaN(d.pl_rade)).concat(ourSolarSystem)
     
     // Set the scale input domains
@@ -110,7 +126,7 @@ class Scatterplot {
       .attr("cx", d => vis.xScale(vis.xValue(d)))
       .attr("cy", d => vis.yScale(vis.yValue(d)))
       .attr("r", 4)
-      .style("fill", function (d) { return d.color; })
+      .style("fill", function (d) { return d.color; });
 
     // Labels for planets in our solar system
     vis.chart.append('g')
@@ -149,6 +165,12 @@ class Scatterplot {
     
     vis.xAxisG.call(vis.xAxis)
     vis.yAxisG.call(vis.yAxis)
+
+    // Update the brush and define a default position
+    const defaultBrushSelection = [[5, 60], [5, 60]];
+    vis.brushG
+        .call(vis.brush)
+        .call(vis.brush.move, defaultBrushSelection);
   }
 
   toggleFilter(filterProperty){
@@ -172,5 +194,26 @@ class Scatterplot {
           }
       }
       filterData(); // Call global function to update visuals
+  }
+
+  /**
+     * React to brush events
+  */
+  brushed(selection) {
+    let vis = this;
+    vis.brushExtent = selection;
+    // Find circles under selection
+    vis.chart.selectAll("circle")
+      .style('fill', function(d) {
+        if(vis.brushExtent !== undefined &&
+          d.x >= vis.brushExtent[0][0] &&
+          d.x <= vis.brushExtent[1][0] &&
+          d.y >= vis.brushExtent[0][1] &&
+          d.y <= vis.brushExtent[1][1]){
+            return 'red';
+          }else{
+            return d.color;
+          }
+      });
   }
 }
