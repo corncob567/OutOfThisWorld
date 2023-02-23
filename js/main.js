@@ -1,5 +1,5 @@
 let data;
-let globalDataFilter = [["pl_name", []]];
+let globalDataFilter = [["pl_name", []], ["disc_year", []]];
 let filterableVisualizations = [];
 
 d3.csv('data/exoplanets.csv')
@@ -216,8 +216,14 @@ function filterData() {
 			v.data = data.map(d => {
 				for (i in globalDataFilter){
 					let attrFilter = globalDataFilter[i]
-					if(!attrFilter[1].includes(d[attrFilter[0]]) && attrFilter[1].length > 0){
-						return {...d, filtered: true}
+					if(attrFilter[0] === "disc_year"){
+						if((d[attrFilter[0]] > attrFilter[1][1] || d[attrFilter[0]] < attrFilter[1][0]) && attrFilter[1][1] !== attrFilter[1][0]){
+							return {...d, filtered: true}
+						}
+					}else{
+						if(!attrFilter[1].includes(d[attrFilter[0]]) && attrFilter[1].length > 0){
+							return {...d, filtered: true}
+						}
 					}
 				}
 				return {...d, filtered: false}

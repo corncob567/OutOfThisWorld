@@ -132,9 +132,9 @@ class Scatterplot {
       .attr("r", 4)
       .attr("opacity", d => {
         if(d.filtered === true){
-          return 0
+          return 0.3;
         }else{
-          return 1
+          return 1;
         }
       })
       .style("fill", function (d) {
@@ -176,8 +176,8 @@ class Scatterplot {
       }
     })
     
-    vis.xAxisG.call(vis.xAxis)
-    vis.yAxisG.call(vis.yAxis)
+    vis.xAxisG.call(vis.xAxis);
+    vis.yAxisG.call(vis.yAxis);
 
     vis.brushG
       .call(vis.brush)
@@ -216,9 +216,9 @@ class Scatterplot {
   toggleFilter(selectedNames){
     let vis = this;
     vis.previousSelection = selectedNames;
-    let attrFilter = globalDataFilter.find(f => (f[0] === "pl_name"))
+    let attrFilter = globalDataFilter.find(f => (f[0] === "pl_name"));
     const attrIndex = globalDataFilter.indexOf(attrFilter);
-    globalDataFilter[attrIndex][1] = selectedNames
+    globalDataFilter[attrIndex][1] = selectedNames;
     filterData(); // Call global function to update visuals
   }
 }

@@ -134,7 +134,11 @@ class LineChart {
             if (selection) vis.brushed(selection);
             })
             .on('end', function({selection}) {
-            if (!selection) vis.brushed(null);
+                if (!selection){
+                    vis.brushed(null, true)
+                }else{
+                    vis.brushed(selection, true)
+                };
             });
 
         // Update the brush and define a default position
@@ -253,16 +257,28 @@ class LineChart {
       if (selection) {
         // Convert given pixel coordinates (range: [x0,x1]) into a time period (domain: [Date, Date])
         const selectedDomain = selection.map(vis.xScaleContext.invert, vis.xScaleContext);
-  
+        let d1 = new Date(selectedDomain[0]).getFullYear();
+        let d2 = new Date(selectedDomain[1]).getFullYear();
+        this.toggleFilter(d1, d2);
+
         // Update x-scale of the focus view accordingly
         vis.xScaleFocus.domain(selectedDomain);
       } else {
-        // Reset x-scale of the focus view (full time period)
-        vis.xScaleFocus.domain(vis.xScaleContext.domain());
+            // Reset x-scale of the focus view (full time period)
+            this.toggleFilter(1992, 2023);
+            vis.xScaleFocus.domain(vis.xScaleContext.domain());
       }
   
       // Redraw line and update x-axis labels in focus view
       vis.focusLinePath.attr('d', vis.line);
       vis.xAxisFocusG.call(vis.xAxisFocus);
     }
+
+    toggleFilter(startYear, endYear){
+        let vis = this;
+        let attrFilter = globalDataFilter.find(f => (f[0] === "disc_year"))
+        const attrIndex = globalDataFilter.indexOf(attrFilter);
+        globalDataFilter[attrIndex][1] = [startYear, endYear];
+        filterData(); // Call global function to update visuals
+      }
   }
