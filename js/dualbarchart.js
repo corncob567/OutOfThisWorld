@@ -195,7 +195,7 @@ class DualBarchart {
         vis.svg.selectAll(".habitableBar").on('mouseover', (event, d) => {
             d3.select('#tooltip')
             .style('display', 'block')
-            .style('left', (event.pageX + 15) + 'px')   
+            .style('left', (event.pageX - 65) + 'px')   
             .style('top', (event.pageY + 15) + 'px')
             .html(`
                 <div class="tooltip-title">Habitable</div>
@@ -212,7 +212,7 @@ class DualBarchart {
         vis.svg.selectAll(".uninhabitableBar").on('mouseover', (event, d) => {
             d3.select('#tooltip')
             .style('display', 'block')
-            .style('left', (event.pageX + 15) + 'px')   
+            .style('left', (event.pageX - 65) + 'px')   
             .style('top', (event.pageY + 15) + 'px')
             .html(`
                 <div class="tooltip-title">Uninhabitable</div>

@@ -159,7 +159,7 @@ class LineChart {
         return 0;
     }
   
-    updateVis() {
+    updateVis(resetBrush = false) {
         let vis = this;
         const aggregatedDataMap = d3.rollups(vis.data, v => d3.sum(v, d => !d.filtered), d => d[this.aggregateAttr]);
         vis.aggregatedData = Array.from(aggregatedDataMap, ([key, count]) => ({ key, count }));
@@ -191,6 +191,12 @@ class LineChart {
         vis.yScaleContext.domain(vis.yScaleFocus.domain());
 
         vis.bisectPos = d3.bisector(vis.xValue).right;
+
+        if(resetBrush){
+            // Update the brush and define a default position
+            vis.brushed(null, true)
+            vis.context.selectAll(".selection").attr('width', 0);
+        }
 
         vis.renderVis();
     }

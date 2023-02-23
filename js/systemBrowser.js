@@ -4,7 +4,7 @@ function toggleSystemBrowser(exoplanet){
       .style('display', 'block')
       .html(`
         <div class="headerBar">
-          <div class="systemName">System Name: ${exoplanet.sys_name}<button onClick='closeSystemBrowser()' type='button'>X</button></div>
+          <div class="systemName">System Name: ${exoplanet.sys_name}<button onClick='closeSystemBrowser()' type='button' class='closeButton'>Close</button></div>
           <div class="selectedPlanet">Selected Planet: ${exoplanet.pl_name}</div>
           <div class="discoveryFacility">Discovered By: ${exoplanet.disc_facility} via ${exoplanet.discoverymethod}</div>
         </div>

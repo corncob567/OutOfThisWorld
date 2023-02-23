@@ -151,7 +151,7 @@ class Barchart {
         bars.on('mouseover', (event, d) => {
             d3.select('#tooltip')
             .style('display', 'block')
-            .style('left', (event.pageX + 5) + 'px')   
+            .style('left', (event.pageX - 65) + 'px')   
             .style('top', (event.pageY + 5) + 'px')
             .html(`
                 <div class="tooltip-title">${vis.config.xLabel}: ${d.key}</div>
@@ -164,7 +164,7 @@ class Barchart {
 
         vis.xAxisG.call(vis.xAxis)
             .selectAll("text")
-            .attr("transform", "translate(-10,0)rotate(-45)")
+            .attr("transform", "translate(-10,0)rotate(-55)")
             .style("text-anchor", "end");
         vis.yAxisG.call(vis.yAxis);
 

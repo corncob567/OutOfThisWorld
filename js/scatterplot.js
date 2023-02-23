@@ -114,7 +114,7 @@ class Scatterplot {
     vis.yValue = d => d[vis.yAttr];
   }
 
-  updateVis() {
+  updateVis(resetBrush = false) {
     let vis = this;
 
     vis.data = vis.data.map(d => ({...d, color: "#69b3a2"})).filter(d => !isNaN(d.pl_bmasse) && !isNaN(d.pl_rade)).concat(ourSolarSystem)
@@ -129,17 +129,15 @@ class Scatterplot {
       .join("circle")
       .attr("cx", d => vis.xScale(vis.xValue(d)))
       .attr("cy", d => vis.yScale(vis.yValue(d)))
-      .attr("r", 4)
+      .attr("r", 3)
       .attr("opacity", d => {
         if(d.filtered === true){
-          return 0.3;
+          return .1;
         }else{
           return 1;
         }
       })
-      .style("fill", function (d) {
-          return d.color;
-      });
+      .style("fill", d => d.color);
 
     // Labels for planets in our solar system
     vis.chart.append('g')
@@ -156,7 +154,7 @@ class Scatterplot {
         .on('mouseover', (event, d) => {
           d3.select('#tooltip')
           .style('display', 'block')
-          .style('left', (event.pageX + 15) + 'px')   
+          .style('left', (event.pageX - 65) + 'px')   
           .style('top', (event.pageY + 15) + 'px')
           .html(`
               <div class="tooltip-title">${d.pl_name}</div>
@@ -179,9 +177,14 @@ class Scatterplot {
     vis.xAxisG.call(vis.xAxis);
     vis.yAxisG.call(vis.yAxis);
 
-    vis.brushG
+    if(resetBrush){
+      // Update the brush and define a default position
+      vis.brushG.selectAll(".selection").attr('width', 0).attr('height', 0);
+    }else{
+      vis.brushG
       .call(vis.brush)
       .call(vis.brush.move, vis.brushExtent);
+    }
   }
 
   /**

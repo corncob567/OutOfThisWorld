@@ -205,7 +205,7 @@ function isInHabitableZone(specType, plOrbsMax){
 	  }
 }
 
-function filterData() {
+function filterData(resetBrush = false) {
 	let filteredData = data;
 	if (globalDataFilter.length == 0) {
 		filterableVisualizations.forEach(v => {
@@ -231,8 +231,13 @@ function filterData() {
 			v.data = filteredData;
 		})
 	}
-	d3.select(".dataCount").text(filteredData.filter(d => !d.filtered).length + "/" + data.length)
+	d3.select(".dataCount").text(filteredData.filter(d => !d.filtered).length + " / " + data.length)
 	filterableVisualizations.forEach(v => {
-		v.updateVis();
+		v.updateVis(resetBrush);
 	})
+}
+
+function clearFilters(){
+	globalDataFilter = [["pl_name", []], ["disc_year", []]];
+	filterData(resetBrush=true);
 }
