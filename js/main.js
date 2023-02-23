@@ -1,5 +1,5 @@
 let data;
-let globalDataFilter = [];
+let globalDataFilter = [["pl_name", []]];
 let filterableVisualizations = [];
 
 d3.csv('data/exoplanets.csv')
@@ -206,6 +206,7 @@ function isInHabitableZone(specType, plOrbsMax){
 }
 
 function filterData() {
+	console.log(globalDataFilter)
 	if (globalDataFilter.length == 0) {
 		filterableVisualizations.forEach(v => {
 			v.data = data;
@@ -215,7 +216,7 @@ function filterData() {
 			v.data = data.map(d => {
 				for (i in globalDataFilter){
 					let attrFilter = globalDataFilter[i]
-					if(!attrFilter[1].includes(d[attrFilter[0]])){
+					if(!attrFilter[1].includes(d[attrFilter[0]]) && attrFilter[1].length > 0){
 						return {...d, filtered: true}
 					}
 				}

@@ -136,6 +136,12 @@ class LineChart {
             .on('end', function({selection}) {
             if (!selection) vis.brushed(null);
             });
+
+        // Update the brush and define a default position
+        const defaultBrushSelection = [0, 545];
+        vis.brushG
+            .call(vis.brush)
+            .call(vis.brush.move, defaultBrushSelection);
     }
 
     // Used to sort by a property value.
@@ -235,12 +241,6 @@ class LineChart {
       vis.xAxisFocusG.call(vis.xAxisFocus);
       vis.yAxisFocusG.call(vis.yAxisFocus);
       vis.xAxisContextG.call(vis.xAxisContext);
-  
-      // Update the brush and define a default position
-      const defaultBrushSelection = [0, 545];
-      vis.brushG
-          .call(vis.brush)
-          .call(vis.brush.move, defaultBrushSelection);
     }
   
     /**

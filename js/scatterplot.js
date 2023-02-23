@@ -29,6 +29,7 @@ class Scatterplot {
       this.xAttr = _xAttr;
       this.yAttr = _yAttr;
       this.data = _data;
+      this.previousSelection = [];
       this.initVis();
   }
 
@@ -99,11 +100,14 @@ class Scatterplot {
     vis.brush = d3.brush()
       .extent([[0, 0], [vis.width, vis.height - 2]])
       .on('brush', function({selection}) {
-        console.log(selection)
         if (selection) vis.brushed(selection);
       })
       .on('end', function({selection}) {
-        if (!selection) vis.brushed(null);
+        if (!selection){
+          vis.brushed(null, true)
+        }else{
+          vis.brushed(selection, true)
+        };
       });
 
     vis.xValue = d => d[vis.xAttr];
@@ -121,12 +125,21 @@ class Scatterplot {
 
     // Add dots
     const circles = vis.chart.join('g').selectAll("circle")
-      .data(vis.data.filter(d => d.filtered === false))
+      .data(vis.data)
       .join("circle")
       .attr("cx", d => vis.xScale(vis.xValue(d)))
       .attr("cy", d => vis.yScale(vis.yValue(d)))
       .attr("r", 4)
-      .style("fill", function (d) { return d.color; });
+      .attr("opacity", d => {
+        if(d.filtered === true){
+          return 0
+        }else{
+          return 1
+        }
+      })
+      .style("fill", function (d) {
+          return d.color;
+      });
 
     // Labels for planets in our solar system
     vis.chart.append('g')
@@ -166,54 +179,46 @@ class Scatterplot {
     vis.xAxisG.call(vis.xAxis)
     vis.yAxisG.call(vis.yAxis)
 
-    // Update the brush and define a default position
-    const defaultBrushSelection = [[5, 60], [5, 60]];
     vis.brushG
-        .call(vis.brush)
-        .call(vis.brush.move, defaultBrushSelection);
-  }
-
-  toggleFilter(filterProperty){
-      let attrFilter = globalDataFilter.find(f => (f[0] === this.aggregateAttr))
-      const attrIndex = globalDataFilter.indexOf(attrFilter);
-      if (attrIndex === -1){ // Attribute has never been filtered on
-          globalDataFilter.push([this.aggregateAttr, [filterProperty]]); // Append new filter
-      }else{ // Attribute is either being removed entirely or needs to be OR'd
-          let specificFilter = globalDataFilter[attrIndex]
-          let specificFilterProperty = specificFilter[1].find(s => (s === filterProperty))
-          const specificFilterIndex = specificFilter[1].indexOf(specificFilterProperty);
-          // Specific filter property was found, so we remove it
-          if (specificFilterIndex > -1) {
-              if (specificFilter[1].length === 1){
-                  globalDataFilter.splice(attrIndex, 1); // remove entire attribute filter since no specific attributes are selected for it
-              }else{
-                  specificFilter[1].splice(specificFilterIndex, 1); // only removes specific filter from that attribute
-              }
-          }else{ // Attribute already has at least 1 filter on it, so we add the new filter to that attribute's array
-              specificFilter[1].push(filterProperty); // Append new filter
-          }
-      }
-      filterData(); // Call global function to update visuals
+      .call(vis.brush)
+      .call(vis.brush.move, vis.brushExtent);
   }
 
   /**
      * React to brush events
   */
-  brushed(selection) {
+  brushed(selection, isEnd = false) {
     let vis = this;
     vis.brushExtent = selection;
+    let selectedNames = [];
     // Find circles under selection
     vis.chart.selectAll("circle")
       .style('fill', function(d) {
-        if(vis.brushExtent !== undefined &&
-          d.x >= vis.brushExtent[0][0] &&
-          d.x <= vis.brushExtent[1][0] &&
-          d.y >= vis.brushExtent[0][1] &&
-          d.y <= vis.brushExtent[1][1]){
-            return 'red';
+        let x = vis.xScale(vis.xValue(d));
+        let y = vis.yScale(vis.yValue(d));
+        if(vis.brushExtent !== null &&
+          !ourSolarSystem.includes(d) &&
+          x >= vis.brushExtent[0][0] &&
+          x <= vis.brushExtent[1][0] &&
+          y >= vis.brushExtent[0][1] &&
+          y <= vis.brushExtent[1][1]){
+            selectedNames.push(d.pl_name);
+            return 'rgb(23, 122, 208)';
           }else{
             return d.color;
           }
       });
+    if(isEnd && JSON.stringify(vis.previousSelection) !== JSON.stringify(selectedNames)){
+      this.toggleFilter(selectedNames);
+    }
+  }
+
+  toggleFilter(selectedNames){
+    let vis = this;
+    vis.previousSelection = selectedNames;
+    let attrFilter = globalDataFilter.find(f => (f[0] === "pl_name"))
+    const attrIndex = globalDataFilter.indexOf(attrFilter);
+    globalDataFilter[attrIndex][1] = selectedNames
+    filterData(); // Call global function to update visuals
   }
 }
