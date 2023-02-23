@@ -19,7 +19,7 @@ class Scatterplot {
       this.config = {
         parentElement: _config.parentElement,
         containerWidth: _config.containerWidth || 600,
-        containerHeight: _config.containerHeight || 412,
+        containerHeight: _config.containerHeight || 304,
         margin: _config.margin || {top: 30, right: 30, bottom: 20, left: 50},
         title: _title,
         xLabel: _xLabel,
@@ -81,7 +81,7 @@ class Scatterplot {
     // Y-Axis Label
     vis.svg.append("text")
       .attr("transform", "rotate(-90)")
-      .attr("x", -vis.config.containerHeight + 200)
+      .attr("x", -vis.config.containerHeight + 160)
       .attr("y", 25)
       .style("text-anchor", "middle")
       .text(vis.config.yLabel);

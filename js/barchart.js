@@ -7,7 +7,7 @@ class Barchart {
         this.config = {
         parentElement: _config.parentElement,
         containerWidth: _config.containerWidth || 300,
-        containerHeight: _config.containerHeight || 416,
+        containerHeight: _config.containerHeight || 300,
         margin: _config.margin || {top: 30, right: 10, bottom: 20, left: 70},
         title: _title,
         xLabel: _xLabel,

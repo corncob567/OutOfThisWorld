@@ -11,9 +11,7 @@
         <div id="pageInfo">
             <p>
                 <span class="title">Out of This World</span>
-                <span class="name"> | By: Daniel Hackney | </span>
-                <span>Data From: <a href="https://exoplanetarchive.ipac.caltech.edu/cgi-bin/TblView/nph-tblView?app=ExoTbls&config=PS">ExoPlanetArchive</a>
-                | Data Visualization performed using D3</span>
+                <span class="name"> | By: Daniel Hackney | CS6024 Project 1</span>
             </p>
         </div>
         <div><svg id="barchart1"></svg></div>
@@ -28,13 +26,16 @@
                 <input type="number" min="1" max="100" step="1" value="30" id="nBin">
             </p>
         </div>
-        <div class="lineChartHolder">
-            <svg id="linechart"></svg>
-        </div>
-        <div class="scatterPlotHolder">
-            <svg id="scatterplot"></svg>
-        </div>
+        <div class="lineChartHolder"><svg id="linechart"></svg></div>
+        <div class="scatterPlotHolder"><svg id="scatterplot"></svg></div>
         <div id="planetDataTable"></div>
+        <div id="footerBar">
+            <p>
+                <span class="dataCountLabel">Exoplanet Count:</span><span class="dataCount">0</span>
+                <span class="visInfo">Data From: <a href="https://exoplanetarchive.ipac.caltech.edu/cgi-bin/TblView/nph-tblView?app=ExoTbls&config=PS">ExoPlanetArchive</a>
+                | Data Visualization performed using D3</span>
+            </p>
+        </div>
     </div>
 
     <div id="tooltip"></div>

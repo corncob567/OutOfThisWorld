@@ -9,9 +9,9 @@ class LineChart {
             parentElement: _config.parentElement,
             contextHeight: 30,
             margin: {top: 30, right: 10, bottom: 100, left: 75},
-            contextMargin: {top: 355, right: 10, bottom: 20, left: 45},
+            contextMargin: {top: 253, right: 10, bottom: 30, left: 45},
             width:  545,
-            height: 282,
+            height: 170,
             title: _title,
             xLabel: _xLabel,
             yLabel: _yLabel,
@@ -142,7 +142,7 @@ class LineChart {
             });
 
         // Update the brush and define a default position
-        const defaultBrushSelection = [0, 545];
+        const defaultBrushSelection = [0, 0];
         vis.brushG
             .call(vis.brush)
             .call(vis.brush.move, defaultBrushSelection);
@@ -250,7 +250,7 @@ class LineChart {
     /**
      * React to brush events
      */
-    brushed(selection) {
+    brushed(selection, isEnd = false) {
       let vis = this;
   
       // Check if the brush is still active or if it has been removed
@@ -259,13 +259,13 @@ class LineChart {
         const selectedDomain = selection.map(vis.xScaleContext.invert, vis.xScaleContext);
         let d1 = new Date(selectedDomain[0]).getFullYear();
         let d2 = new Date(selectedDomain[1]).getFullYear();
-        this.toggleFilter(d1, d2);
+        this.toggleFilter(d1, d2, isEnd);
 
         // Update x-scale of the focus view accordingly
         vis.xScaleFocus.domain(selectedDomain);
       } else {
             // Reset x-scale of the focus view (full time period)
-            this.toggleFilter(1992, 2023);
+            this.toggleFilter(1992, 2023, isEnd);
             vis.xScaleFocus.domain(vis.xScaleContext.domain());
       }
   
@@ -274,11 +274,12 @@ class LineChart {
       vis.xAxisFocusG.call(vis.xAxisFocus);
     }
 
-    toggleFilter(startYear, endYear){
-        let vis = this;
-        let attrFilter = globalDataFilter.find(f => (f[0] === "disc_year"))
-        const attrIndex = globalDataFilter.indexOf(attrFilter);
-        globalDataFilter[attrIndex][1] = [startYear, endYear];
-        filterData(); // Call global function to update visuals
+    toggleFilter(startYear, endYear, isEnd = false){
+        if(isEnd){ // remove this check if you want the filter to apply constantly while brushing (kinda laggy)
+            let attrFilter = globalDataFilter.find(f => (f[0] === "disc_year"))
+            const attrIndex = globalDataFilter.indexOf(attrFilter);
+            globalDataFilter[attrIndex][1] = [startYear, endYear];
+            filterData(); // Call global function to update visuals
+        }
       }
   }

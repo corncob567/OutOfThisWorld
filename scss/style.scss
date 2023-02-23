@@ -23,6 +23,32 @@ body{
     }
 }
 
+#footerBar{
+    flex-basis: 100%;
+    margin-top: auto;
+    background-color: aliceblue;
+    position: absolute;
+    width: 100%;
+    bottom: 0;
+    p{
+        text-align: center;
+        margin: 10px 10px;
+    }
+    .dataCountLabel, .dataCount{
+        font-size: larger;
+        font-weight: 900;
+        float: left;
+        margin-bottom: 10px;
+    }
+    .dataCountLabel{
+        padding-right: 10px;
+    }
+    .visInfo{
+        font-weight: 900;
+        float: right;
+    }
+}
+
 #barchart1{
     background-color: rgb(204, 237, 219);
 }
@@ -58,7 +84,7 @@ body{
 }
 
 .binInput{
-    transform: translate(150px, -410px);
+    transform: translate(150px, -295px);
 }
 
 .lineChartHolder{
@@ -109,7 +135,7 @@ body{
 
 #planetDataTable{
     overflow-y: auto;
-    height: 200px;
+    height: 230px;
     table, th, td{
         border: 1px solid black;
         border-collapse: collapse;

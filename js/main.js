@@ -41,7 +41,7 @@ d3.csv('data/exoplanets.csv')
 
 	barchart3 = new Barchart({
 		parentElement: '#barchart3',
-		}, data, "st_spectype", "Bar Chart 3", "Star Type", "# of Exoplanets");
+		}, data, "st_spectype", "Bar Chart 3", "Star Type", "# of Exoplanets", 40);
 	barchart3.updateVis();
 
 	barchart4 = new Barchart({
@@ -78,7 +78,7 @@ function drawHistogram(data, svgId, title, xLabel, yLabel, XAxisLabelHeight = 20
 	const margin = {top: 30, right: 30, bottom: 20, left: 50};
 
 	const width = 300 - margin.left - margin.right;
-	const height = 412 - margin.top - margin.bottom;
+	const height = 300 - margin.top - margin.bottom;
 	const titleheight = 30
 	const YAxisLabelWidth = 20
 
@@ -206,14 +206,14 @@ function isInHabitableZone(specType, plOrbsMax){
 }
 
 function filterData() {
-	console.log(globalDataFilter)
+	let filteredData = data;
 	if (globalDataFilter.length == 0) {
 		filterableVisualizations.forEach(v => {
 			v.data = data;
 		})
 	} else {
 		filterableVisualizations.forEach(v => {
-			v.data = data.map(d => {
+			filteredData = data.map(d => {
 				for (i in globalDataFilter){
 					let attrFilter = globalDataFilter[i]
 					if(attrFilter[0] === "disc_year"){
@@ -228,8 +228,10 @@ function filterData() {
 				}
 				return {...d, filtered: false}
 			})
+			v.data = filteredData;
 		})
 	}
+	d3.select(".dataCount").text(filteredData.filter(d => !d.filtered).length + "/" + data.length)
 	filterableVisualizations.forEach(v => {
 		v.updateVis();
 	})
