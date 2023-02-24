@@ -85,7 +85,6 @@ d3.csv('data/exoplanets.csv')
 		["pl_bmasse", "Mass"]
 	]);
 	
-
 	filterableVisualizations = [barchart1, barchart2, barchart3, barchart4, dualBarchart, histogram, linechart, scatterplot, table]
 })
 .catch(error => {
