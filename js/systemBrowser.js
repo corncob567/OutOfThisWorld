@@ -78,7 +78,6 @@ function getSolarSystem(exoplanet){
       isStar: true
     }
     solarSystem.push(hostAsPlanet)
-    // TODO: get kind of planet using pl_bmasse
 
     return solarSystem;
 }
