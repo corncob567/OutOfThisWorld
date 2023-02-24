@@ -93,10 +93,10 @@ class Bubblechart {
     let vis = this;
     console.log(vis.data)
 
-    vis.data = vis.data.map(d => ({...d, color: "#69b3a2"})).filter(d => !isNaN(d[vis.xAttr]))
+    vis.data = vis.data.filter(d => !isNaN(d[vis.xAttr]))
     
     // Set the scale input domains
-    vis.xScale.domain([-d3.max(vis.data, vis.xValue), d3.max(vis.data, vis.xValue)]);
+    vis.xScale.domain([-2 * d3.max(vis.data, vis.xValue), 2 * d3.max(vis.data, vis.xValue)]);
     vis.yScale.domain(d3.extent(vis.data, vis.yValue));
     vis.rScale.domain(d3.extent(vis.data, vis.rValue));
 
@@ -104,15 +104,21 @@ class Bubblechart {
     const circles = vis.chart.join('g').selectAll("circle")
       .data(vis.data)
       .join("circle")
-      .attr("cx", d => vis.xScale(vis.xValue(d)))
+      .attr("cx", d => {
+        if(d.isStar === false){
+          return vis.xScale(vis.xValue(d))
+        }else{
+          return vis.xScale(vis.xValue(d)) - 200
+        }
+      })
       .attr("cy", d => vis.yScale(vis.yValue(d)))
-      .attr("r", d => vis.rScale(vis.rValue(d)))
-      .style("fill", "black");
+      .attr("r", d => vis.rScale(vis.rValue(d))) // TODO: Catch cases where st_rad/pl_rade is NaN
+      .style('fill', d => d.color);
 
     const ellipses = vis.chart.join('g').selectAll("ellipse")
-      .data(vis.data.filter(d => d.isStar === false))
+      .data(vis.data.filter(d => d.isStar === false && !isNaN(d.pl_orbeccen)))
       .join("ellipse")
-      .attr("cx", d => vis.xScale(0))
+      .attr("cx", d => vis.xScale(vis.xValue(d)) - vis.xScale(0))
       .attr("cy", d => vis.yScale(vis.yValue(d)))
       .attr("rx", d => (vis.xScale(vis.xValue(d) - vis.xValue(d))))
       .attr("ry", d => (vis.xScale(vis.xValue(d)) / (1 - d.pl_orbeccen)) / 2)
@@ -131,12 +137,14 @@ class Bubblechart {
                       <div class="tooltip-title">${d.pl_name}</div>
                       <div class="tooltip-title">${vis.config.xLabel}: ${vis.xValue(d).toFixed(2)}</div>
                       <div class="tooltip-title">Solar Radius: ${vis.rValue(d).toFixed(2)}</div>
+                      <div class="tooltip-title">Star Type: ${d.st_spectype}</div>
                     `
             }else{
               return `
                       <div class="tooltip-title">${d.pl_name}</div>
                       <div class="tooltip-title">${vis.config.xLabel}: ${vis.xValue(d).toFixed(2)}</div>
                       <div class="tooltip-title">${vis.config.rLabel}: ${vis.rValue(d).toFixed(2)}</div>
+                      <div class="tooltip-title">Planet Type: ${d.planetType}</div>
                     `
             }
           });

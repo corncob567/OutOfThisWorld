@@ -17,12 +17,52 @@ function toggleSystemBrowser(exoplanet){
     bubbleChart.updateVis();
 }
 
+function getPlanetType(exoplanet){
+  let mass = exoplanet.pl_bmasse;
+  if(mass === undefined){
+    return 'Unknown'
+  }else{
+    if(mass < 0.00001){
+      return 'Asteroidian';
+    }
+    if(mass >= 0.00001 && mass < 0.1){
+      return 'Mercurian';
+    }
+    if(mass >= 0.1 && mass < 0.5){
+      return 'Subterran';
+    }
+    if(mass >= 0.5 && mass < 2){
+      return 'Terran';
+    }
+    if(mass >= 2 && mass < 10){
+      return 'Superterran';
+    }
+    if(mass >= 10 && mass < 50){
+      return 'Neptunian';
+    }
+    if(mass >= 50){
+      return 'Jovian';
+    }
+  }
+}
+
 function getSolarSystem(exoplanet){
     let solarSystemName = exoplanet.sys_name;
     let solarSystem = [];
+
+    let types = ["A", "F", "G", "K", "M", "Unknown"]
+    let typeColors = ["green", "red", "blue", "orange", "purple", "black"]
+    let specificColor = types.find(t => (t === exoplanet.st_spectype));
+    let colorBasedOnStarType
+    if(specificColor === undefined){
+      colorBasedOnStarType = 'brown';
+    }else{
+      colorBasedOnStarType = typeColors[types.indexOf(specificColor)];
+    }
+
     data.map(d => {
         if(d.sys_name === solarSystemName){
-            solarSystem.push({...d, isStar: false});
+            solarSystem.push({...d, isStar: false, planetType: getPlanetType(d)});
         }
     })
     let hostAsPlanet = {
@@ -33,6 +73,8 @@ function getSolarSystem(exoplanet){
       st_mass: solarSystem[0].st_mass,
       pl_bmasse: solarSystem[0].st_mass,
       pl_orbsmax: 0,
+      st_spectype: solarSystem[0].st_spectype,
+      color: colorBasedOnStarType,
       isStar: true
     }
     solarSystem.push(hostAsPlanet)
