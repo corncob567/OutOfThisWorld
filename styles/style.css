@@ -98,7 +98,10 @@ button {
 }
 
 .histHolder {
-  margin-bottom: -53px;
+  margin-bottom: -63px;
+}
+.histHolder .binInput {
+  margin: 0;
 }
 .histHolder #histogram {
   background-color: rgb(238, 214, 184);
@@ -152,6 +155,7 @@ button {
 #planetDataTable {
   overflow-y: auto;
   height: 230px;
+  flex-basis: 100%;
 }
 #planetDataTable table, #planetDataTable th, #planetDataTable td {
   border: 1px solid black;
@@ -162,11 +166,14 @@ button {
   padding-right: 5px;
 }
 #planetDataTable thead th {
-  background-color: aliceblue;
+  background-color: rgb(65, 64, 64);
+  color: #fff;
+  transform: translate(0px, -2px);
 }
 #planetDataTable thead {
   background-color: aliceblue;
   position: sticky;
+  width: 9%;
   top: 0px;
 }
 #planetDataTable tbody tr:nth-child(odd) {
@@ -177,7 +184,7 @@ button {
   background: #ffffff;
   color: #000000;
 }
-#planetDataTable table tr:hover {
+#planetDataTable tbody tr:hover {
   cursor: pointer;
   background: #bbb9b9;
 }

@@ -1,6 +1,7 @@
 let data;
 let globalDataFilter = [["pl_name", []], ["disc_year", []]];
 let filterableVisualizations = [];
+let nBins = 30;
 
 d3.csv('data/exoplanets.csv')
   .then(_data => {
@@ -54,8 +55,10 @@ d3.csv('data/exoplanets.csv')
 		}, data, "st_spectype", "within_habitable_zone", "Dual Bar Chart", "Star Type", "# of Exoplanets");
 	dualBarchart.updateVis(oninit=true);
 
-	// https://d3-graph-gallery.com/graph/histogram_binSize.html
-	drawHistogram(data.filter(d => d.sy_dist !== "BLANK"), "histogram", "Histogram", "Distance from Earth (pc)", "# of Exoplanets", 30)
+	histogram = new Histogram({
+		parentElement: '#histogram',
+		}, data, "sy_dist", "Histogram", "Distance from Earth (pc)", "# of Exoplanets");
+	histogram.updateVis(20);
 
 	linechart = new LineChart({ parentElement: '#linechart'},
 		data, "disc_year", "Line Chart", "Year", "# of Exoplanets Discovered");
@@ -65,122 +68,34 @@ d3.csv('data/exoplanets.csv')
 		data, "pl_rade", "pl_bmasse","Scatter Plot", "Planet Radius (Earth Radius)", "Planet Mass (Earth Mass)");
 	scatterplot.updateVis();
 
-	table = new DataTable('#planetDataTable', data, ["pl_name", "st_spectype", "discoverymethod", "sy_dist", "sy_snum", "sy_pnum", "disc_year", "st_rad", "st_mass", "pl_rade", "pl_bmasse"]);
+	table = new DataTable('#planetDataTable', data,
+	[
+		["pl_name", "Planet Name"],
+		["hostname", "Host Name"],
+		["st_spectype", "Star Type"],
+		["disc_facility", "Discovery Facility"],
+		["discoverymethod", "Discovery Method"],
+		["disc_year", "Discovery Year"],
+		["sy_dist", "Distance (pc)"],
+		["sy_snum", "# of Stars"],
+		["sy_pnum", "# of Planets"],
+		["st_rad", "Stellar Radius"],
+		["st_mass", "Stellar Mass"],
+		["pl_rade", "Radius"],
+		["pl_bmasse", "Mass"]
+	]);
 	
 
-	filterableVisualizations = [barchart1, barchart2, barchart3, barchart4, dualBarchart, linechart, scatterplot, table]
+	filterableVisualizations = [barchart1, barchart2, barchart3, barchart4, dualBarchart, histogram, linechart, scatterplot, table]
 })
 .catch(error => {
     console.error('Error loading the data: ' + error);
 });
 
-function drawHistogram(data, svgId, title, xLabel, yLabel, XAxisLabelHeight = 20){
-	const margin = {top: 30, right: 30, bottom: 20, left: 50};
-
-	const width = 300 - margin.left - margin.right;
-	const height = 300 - margin.top - margin.bottom;
-	const titleheight = 30
-	const YAxisLabelWidth = 20
-
-	const svg = d3.select('#' + svgId).append('svg')
-	    .attr('width', width + margin.left + margin.right)
-	    .attr('height', height + margin.top + margin.bottom)
-	    .append('g')
-	    .attr('transform', `translate(${margin.left}, ${margin.top})`);
-
-	let x = d3.scaleLinear()
-		.domain([0, d3.max(data, function(d) { return +d.sy_dist })])
-		.range([ YAxisLabelWidth, width ])
-	svg.append("g")
-		.attr("transform", "translate(0," + (height - XAxisLabelHeight) + ")")
-		.call(d3.axisBottom(x))
-		.selectAll("text")
-		.attr("transform", "translate(-10,0)rotate(-45)")
-		.style("text-anchor", "end");
-
-	let y = d3.scaleLinear()
-		.range([ height - XAxisLabelHeight, titleheight]);
-	let yAxis = svg.append("g")
-					.attr("transform", "translate(" + YAxisLabelWidth + ", 0)");
-
-	// Builds the graph for a specific value of bin
-	function update(nBin) {
-		let histogram = d3.histogram()
-			.value(function(d) { return d.sy_dist; })
-			.domain(x.domain())
-			.thresholds(x.ticks(nBin)); // # of bins
-
-		let bins = histogram(data);
-
-		// Y axis: update now that we know the domain
-		y.domain([0, d3.max(bins, function(d) { return d.length; })]);
-		yAxis
-			.transition()
-			.duration(1000)
-			.call(d3.axisLeft(y));
-
-		let u = svg.selectAll("rect")
-			.data(bins)
-
-		// Manage the existing bars and newly added ones
-		u.join("rect")
-			.attr('class', 'bar')
-			.merge(u) // merge existing elements
-			.transition() // apply changes to all of them
-			.duration(1000)
-				.attr("x", 1)
-				.attr("transform", function(d) { return "translate(" + x(d.x0) + "," + y(d.length) + ")"; })
-				.attr("width", function(d) { return x(d.x1) - x(d.x0); })
-				.attr("height", function(d) { return height - y(d.length) - XAxisLabelHeight })
-				.style("fill", "#69b3a2")
-
-			// If less bars exist in the new histogram, delete bars no longer in use
-			u.exit().remove()
-	
-		svg.selectAll("rect").on('mouseover', (event, d) => {
-			d3.select('#tooltip')
-			.style('display', 'block')
-			.style('left', (event.pageX + 15) + 'px')   
-			.style('top', (event.pageY + 15) + 'px')
-			.html(`
-				<div class="tooltip-title">${xLabel}: ${d.x0}-${d.x1}</div>
-                <div class="tooltip-title">${yLabel}: ${d.length}</div>
-			`);
-		})
-		.on('mouseleave', () => {
-			d3.select('#tooltip').style('display', 'none');
-		});
-	}
-
-	// Initialize the histogram with 20 bins
-	update(20)
-
-	d3.select("#nBin").on("input", function() {
-		update(+this.value);
-	});
-
-	// Title
-	svg.append("text")
-   .attr("x", width / 2 - 80)
-   .attr("y", 10)
-   .attr("text-anchor", "middle")
-   .style("font-size", "24px")
-   .text(title);
-
-   // Y-Axis Label
-   svg.append("text")
-   .attr("transform", "rotate(-90)")
-   .attr("x", -(height / 2))
-   .attr("y", -30)
-   .style("text-anchor", "middle")
-   .text(yLabel);
-
-   // X-Axis Label
-   svg.append("text")
-   .attr("transform", "translate(" + (width / 2) + " ," + (height + 15) + ")")
-   .style("text-anchor", "middle")
-   .text(xLabel);
-}
+d3.select("#nBin").on("input", function() {
+	nBins = +this.value;
+	histogram.updateVis(+this.value)
+});
 
 function isInHabitableZone(specType, plOrbsMax){
 	let isHabitable = false
@@ -233,7 +148,11 @@ function filterData(resetBrush = false) {
 	}
 	d3.select(".dataCount").text(filteredData.filter(d => !d.filtered).length + " / " + data.length)
 	filterableVisualizations.forEach(v => {
-		v.updateVis(resetBrush);
+		if(v.aggregateAttr === "sy_dist"){ // the histogram
+			v.updateVis(nBins);
+		}else{
+			v.updateVis(resetBrush);
+		}
 	})
 }
 

@@ -132,7 +132,7 @@ class Scatterplot {
       .attr("r", 3)
       .attr("opacity", d => {
         if(d.filtered === true){
-          return .1;
+          return 0;
         }else{
           return 1;
         }

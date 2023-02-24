@@ -5,14 +5,14 @@ class Barchart {
      */
     constructor(_config, _data, _aggregateAttr, _title, _xLabel, _yLabel, _XAxisLabelHeight = 20) {
         this.config = {
-        parentElement: _config.parentElement,
-        containerWidth: _config.containerWidth || 300,
-        containerHeight: _config.containerHeight || 300,
-        margin: _config.margin || {top: 30, right: 10, bottom: 20, left: 70},
-        title: _title,
-        xLabel: _xLabel,
-        yLabel: _yLabel,
-        XAxisLabelHeight: _XAxisLabelHeight
+            parentElement: _config.parentElement,
+            containerWidth: _config.containerWidth || 300,
+            containerHeight: _config.containerHeight || 300,
+            margin: _config.margin || {top: 30, right: 10, bottom: 20, left: 70},
+            title: _title,
+            xLabel: _xLabel,
+            yLabel: _yLabel,
+            XAxisLabelHeight: _XAxisLabelHeight
         }
         this.data = _data;
         this.aggregateAttr = _aggregateAttr;
