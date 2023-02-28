@@ -129,12 +129,11 @@ class Scatterplot {
       .join("circle")
       .attr("cx", d => vis.xScale(vis.xValue(d)))
       .attr("cy", d => vis.yScale(vis.yValue(d)))
-      .attr("r", 3)
-      .attr("opacity", d => {
+      .attr("r", d => {
         if(d.filtered === true){
-          return 0;
+          return 0.1; // makes it easier to select the visible circles
         }else{
-          return 1;
+          return 3;
         }
       })
       .attr('class', d => {
