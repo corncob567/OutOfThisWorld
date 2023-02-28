@@ -133,9 +133,6 @@ button {
   stroke: #fff;
   paint-order: stroke;
 }
-#scatterplot circle {
-  cursor: pointer;
-}
 #scatterplot circle:hover {
   stroke: #000;
 }

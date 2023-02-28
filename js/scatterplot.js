@@ -137,6 +137,13 @@ class Scatterplot {
           return 1;
         }
       })
+      .attr('class', d => {
+        if(d.filtered === true){
+          return 'filtered'
+        }else{
+          return ''
+        }
+      })
       .style("fill", d => d.color);
 
     // Labels for planets in our solar system
@@ -152,24 +159,26 @@ class Scatterplot {
 
     circles
         .on('mouseover', (event, d) => {
-          d3.select('#tooltip')
-          .style('display', 'block')
-          .style('left', (event.pageX - 65) + 'px')   
-          .style('top', (event.pageY + 15) + 'px')
-          .html(`
-              <div class="tooltip-title">${d.pl_name}</div>
-              <ul>
-              <li>Earth Radius: ${d.pl_rade}</li>
-              <li>Earth Mass: ${d.pl_bmasse}</li>
-              </ul>
-            `);
+          if(d.filtered === false){
+            d3.select('#tooltip')
+            .style('display', 'block')
+            .style('left', (event.pageX - 65) + 'px')   
+            .style('top', (event.pageY + 15) + 'px')
+            .html(`
+                <div class="tooltip-title">${d.pl_name}</div>
+                <ul>
+                <li>Earth Radius: ${d.pl_rade}</li>
+                <li>Earth Mass: ${d.pl_bmasse}</li>
+                </ul>
+              `);
+          }
           })
           .on('mouseleave', () => {
             d3.select('#tooltip').style('display', 'none');
           });
 
     circles.on('click', (event, exoplanet) => {
-      if(!ourSolarSystem.includes(exoplanet)){
+      if(exoplanet.filtered === false && !ourSolarSystem.includes(exoplanet)){
         toggleSystemBrowser(exoplanet);
       }
     })
