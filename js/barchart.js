@@ -8,7 +8,7 @@ class Barchart {
             parentElement: _config.parentElement,
             containerWidth: _config.containerWidth || 300,
             containerHeight: _config.containerHeight || 300,
-            margin: _config.margin || {top: 30, right: 10, bottom: 20, left: 70},
+            margin: _config.margin || {top: 35, right: 10, bottom: 20, left: 70},
             title: _title,
             xLabel: _xLabel,
             yLabel: _yLabel,
@@ -66,6 +66,7 @@ class Barchart {
             .attr("y", 25)
             .attr("text-anchor", "middle")
             .style("font-size", "24px")
+            .style('text-decoration', 'underline')
             .text(vis.config.title);
 
         // Y-Axis Label
@@ -78,14 +79,28 @@ class Barchart {
 
         // X-Axis Label
         vis.svg.append("text")
-            .attr("transform", "translate(" + (vis.config.containerWidth / 2) + " ," + (vis.config.containerHeight - 5) + ")")
-            .style("text-anchor", "middle")
-            .text(vis.config.xLabel);
-    }
+                .attr("transform", "translate(" + (vis.config.containerWidth / 2) + " ," + (vis.config.containerHeight - 5) + ")")
+                .style("text-anchor", "middle")
+                .text(vis.config.xLabel);
 
-    /**
-     * Prepare data and scales before we render it
-     */
+        if(this.aggregateAttr === "st_spectype"){
+            vis.svg.append("svg:a")
+                .attr("xlink:href", 'https://astrobackyard.com/types-of-stars/')
+                .attr('target', '_blank')
+                .append("text")
+                .text('ⓘ')
+                .attr('class', 'startTypeHelp')
+                .attr("transform", "translate(" + (vis.config.containerWidth / 2 + 40) + " ," + (vis.config.containerHeight - 5) + ")")
+                .on('mouseover', (event, d) => {
+                    d3.select('.startTypeHelp')
+                    .style('font-weight', 900);
+                })
+                .on('mouseleave', () => {
+                    d3.select('.startTypeHelp')
+                    .style('font-weight', 100);
+                });
+        }
+    }
 
     // Used to sort by a property value. Currently sorts in descending order by frequency.
     compare(a, b) {

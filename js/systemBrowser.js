@@ -7,7 +7,7 @@ function toggleSystemBrowser(exoplanet){
       .html(`
         <div class="headerBar">
           <div class="systemName">System Name: ${exoplanet.sys_name}<button onClick='closeSystemBrowser()' type='button' class='closeButton'>Close</button></div>
-          <div class="selectedPlanet">Selected Planet: ${exoplanet.pl_name}</div>
+          <div class="selectedPlanet">Selected Planet: ${exoplanet.pl_name} | Planet Type: ${solarSystem.find(d => d.pl_name === exoplanet.pl_name).planetType}</div>
           <div class="discoveryFacility">Discovered By: ${exoplanet.disc_facility} via ${exoplanet.discoverymethod} in ${exoplanet.disc_year}</div>
         </div>
         <div><svg id="systemGraph"></svg></div>
@@ -51,7 +51,7 @@ function getSolarSystem(exoplanet){
     let solarSystem = [];
 
     let types = ["A", "F", "G", "K", "M", "Unknown"]
-    let typeColors = ["green", "red", "blue", "orange", "purple", "black"]
+    let typeColors = ["blue", "#a7ebd9", "#efeaa9", "#e18b14", "red", "black"]
     let specificColor = types.find(t => (t === exoplanet.st_spectype));
     let colorBasedOnStarType
     if(specificColor === undefined){
@@ -62,14 +62,18 @@ function getSolarSystem(exoplanet){
 
     data.map(d => {
         if(d.sys_name === solarSystemName){
+          if(d.pl_name === exoplanet.pl_name){
+            solarSystem.push({...d, isStar: false, planetType: getPlanetType(d), color: 'green'});
+          }else{
             solarSystem.push({...d, isStar: false, planetType: getPlanetType(d)});
+          }
         }
     })
     let hostAsPlanet = {
       hostname: solarSystem[0].hostname,
       pl_name: solarSystem[0].hostname,
       st_rad: solarSystem[0].st_rad,
-      pl_rade: solarSystem[0].st_rad * 109.076,
+      pl_rade: solarSystem[0].st_rad * 109.076, // converts solar radius to planet radius
       st_mass: solarSystem[0].st_mass,
       pl_bmasse: solarSystem[0].st_mass,
       pl_orbsmax: 0,
