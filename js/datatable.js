@@ -36,7 +36,6 @@ class DataTable {
             .data(vis.data)
             .enter()
             .append('tr').on('click', (event, exoplanet) => {
-                console.log(exoplanet);
                 if(!ourSolarSystem.includes(exoplanet)){
                   toggleSystemBrowser(exoplanet);
                 }
@@ -89,7 +88,6 @@ class DataTable {
             .data(vis.data)
             .join('tr')
             .on('click', (event, exoplanet) => {
-                console.log(exoplanet);
                 if(!ourSolarSystem.includes(exoplanet)){
                   toggleSystemBrowser(exoplanet);
                 }

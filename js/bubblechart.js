@@ -80,7 +80,6 @@ class Bubblechart {
 
   updateVis() {
     let vis = this;
-    console.log(vis.data)
 
     vis.data = vis.data.filter(d => !isNaN(d[vis.xAttr]))
     
